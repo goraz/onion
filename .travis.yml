@@ -1,0 +1,17 @@
+language: go
+go:
+  - 1.1
+  - 1.2
+  - 1.3
+  - 1.4
+  - tip
+before_install:
+  - go get -v github.com/smartystreets/goconvey
+  - go get -v github.com/axw/gocov/gocov
+  - go get -v github.com/mattn/goveralls
+  - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
+script:
+  - goveralls -v -service travis-ci -repotoken $COVERALLS_TOKEN
+matrix:
+  allow_failures:
+    - go: 1.1
