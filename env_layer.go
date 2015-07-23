@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+//TODO : support for nested value (maybe?)
 type envLoader struct {
 	whiteList []string
 

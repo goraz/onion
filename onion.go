@@ -2,6 +2,7 @@ package onion
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -102,23 +103,7 @@ func lowerMap(m map[string]interface{}) map[string]interface{} {
 // GetInt return an int value from Onion, if the value is not exists or its not an
 // integer , default is returned
 func (o Onion) GetInt(key string, def int) int {
-	v, ok := o.Get(key)
-	if !ok {
-		return def
-	}
-
-	switch v.(type) {
-	case int:
-		return v.(int)
-	case int64:
-		return int(v.(int64))
-	case float32:
-		return int(v.(float32))
-	case float64:
-		return int(v.(float64))
-	default:
-		return def
-	}
+	return int(o.GetInt64(key, int64(def)))
 }
 
 // GetInt64 return an int64 value from Onion, if the value is not exists or if the value is not
@@ -130,6 +115,14 @@ func (o Onion) GetInt64(key string, def int64) int64 {
 	}
 
 	switch v.(type) {
+	case string:
+		// Env is not typed and always is String, so try to convert it to int
+		// if possible
+		i, err := strconv.ParseInt(v.(string), 10, 64)
+		if err != nil {
+			return def
+		}
+		return i
 	case int:
 		return int64(v.(int))
 	case int64:
@@ -167,12 +160,20 @@ func (o Onion) GetBool(key string, def bool) bool {
 		return def
 	}
 
-	s, ok := v.(bool)
-	if !ok {
+	switch v.(type) {
+	case string:
+		// Env is not typed and always is String, so try to convert it to int
+		// if possible
+		i, err := strconv.ParseBool(v.(string))
+		if err != nil {
+			return def
+		}
+		return i
+	case bool:
+		return v.(bool)
+	default:
 		return def
 	}
-
-	return s
 }
 
 // GetStruct fill an structure base on the config nested set
@@ -208,19 +209,19 @@ func iterateConfig(o Onion, c interface{}, op string) {
 			switch v.Field(i).Kind() {
 			case reflect.Bool:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetBool(o.GetBool(prefix+name, false))
+					v.Field(i).SetBool(o.GetBool(prefix+name, v.Field(i).Bool()))
 				}
 			case reflect.Int:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetInt(o.GetInt64(prefix+name, 0))
+					v.Field(i).SetInt(o.GetInt64(prefix+name, v.Field(i).Int()))
 				}
 			case reflect.Int64:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetInt(o.GetInt64(prefix+name, 0))
+					v.Field(i).SetInt(o.GetInt64(prefix+name, v.Field(i).Int()))
 				}
 			case reflect.String:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetString(o.GetString(prefix+name, ""))
+					v.Field(i).SetString(o.GetString(prefix+name, v.Field(i).String()))
 				}
 			case reflect.Struct:
 				iterateConfig(o, v.Field(i).Addr().Interface(), prefix+name)

@@ -2,6 +2,7 @@ package onion
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
@@ -85,6 +86,7 @@ func TestOnion(t *testing.T) {
 			So(o.GetInt64("nokey1", 0), ShouldEqual, 0)
 
 			So(o.GetInt64("", 0), ShouldEqual, 0) // Empty key
+			So(o.GetInt64("key3", 10000), ShouldEqual, 10000)
 		})
 
 		Convey("Get nested variable", func() {
@@ -152,5 +154,26 @@ func TestOnion(t *testing.T) {
 			So(tmp, ShouldBeNil)
 		})
 
+	})
+
+	Convey("Test layer overwrite", t, func() {
+		lm1 := &layerMock{getMap("test", 1, true)}
+		lm2 := &layerMock{getMap("test", 2, false)}
+		os.Setenv("TEST0", "3")
+		os.Setenv("TEST1", "True")
+		os.Setenv("TEST2", "INVALIDBOOL")
+		lm3 := NewEnvLayer("TEST0", "TEST1", "TEST2")
+
+		o := New()
+		o.AddLayer(lm1)
+		So(o.GetInt64("test0", 0), ShouldEqual, 1)
+		So(o.GetBool("test1", false), ShouldBeTrue)
+		o.AddLayer(lm2)
+		So(o.GetInt64("test0", 0), ShouldEqual, 2)
+		So(o.GetBool("test1", true), ShouldBeFalse)
+		o.AddLayer(lm3) // Special case in ENV loader
+		So(o.GetInt64("test0", 0), ShouldEqual, 3)
+		So(o.GetBool("test1", false), ShouldBeTrue)
+		So(o.GetBool("test2", false), ShouldBeFalse)
 	})
 }

@@ -1,0 +1,7 @@
+{
+  "port": 1020,
+  "db": {
+    "username" : "bita",
+    "password" : "secret"
+  }
+}
