@@ -10,9 +10,10 @@ import (
 func TestEnvLayer(t *testing.T) {
 	Convey("EnvLayer test ", t, func() {
 		// Just for passing the errcheck errors :)
-		So(os.Unsetenv("TEST1"), ShouldBeNil)
-		So(os.Unsetenv("TEST2"), ShouldBeNil)
-		So(os.Unsetenv("TEST3"), ShouldBeNil)
+		// Unsetenv is not available in < 1.3
+		//So(os.Unsetenv("TEST1"), ShouldBeNil)
+		//So(os.Unsetenv("TEST2"), ShouldBeNil)
+		//So(os.Unsetenv("TEST3"), ShouldBeNil)
 		So(os.Setenv("BLACK", "blacklisted"), ShouldBeNil)
 		//o := New()
 
