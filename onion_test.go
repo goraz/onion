@@ -54,6 +54,13 @@ func TestOnion(t *testing.T) {
 		lm := &layerMock{}
 		lm.data = getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200), int64(100))
 		lm.data["nested"] = getMap("n", "a", 99, true)
+		t1 := make(map[interface{}]interface{})
+		t1["str1"] = 1
+		t1["str2"] = "hi"
+		t1["nested"] = t1
+		t1["other"] = struct{}{}
+		t1["what"] = getMap("n", "a")
+		lm.data["yes"] = t1
 
 		o := New()
 		So(o.AddLayer(lm), ShouldBeNil)
@@ -94,6 +101,12 @@ func TestOnion(t *testing.T) {
 			So(o.GetInt64("nested.n1", 0), ShouldEqual, 99)
 			So(o.GetInt("nested.n1", 0), ShouldEqual, 99)
 			So(o.GetBool("nested.n2", false), ShouldEqual, true)
+
+			So(o.GetInt("yes.str1", 0), ShouldEqual, 1)
+			So(o.GetString("yes.str2", ""), ShouldEqual, "hi")
+
+			So(o.GetString("yes.nested.str2", ""), ShouldEqual, "hi")
+			So(o.GetString("yes.what.n0", ""), ShouldEqual, "a")
 		})
 
 		Convey("Get nested default variable", func() {
@@ -102,6 +115,10 @@ func TestOnion(t *testing.T) {
 			So(o.GetInt64("nested.n11", 0), ShouldEqual, 0)
 			So(o.GetInt("nested.n11", 0), ShouldEqual, 0)
 			So(o.GetBool("nested.n21", false), ShouldEqual, false)
+
+			So(o.GetString("yes.nested.no", "def"), ShouldEqual, "def")
+			So(o.GetString("yes.nested.other.key", "def"), ShouldEqual, "def")
+			So(o.GetString("yes.what.no", "def"), ShouldEqual, "def")
 		})
 
 		Convey("change delimiter", func() {
@@ -126,7 +143,7 @@ func TestOnion(t *testing.T) {
 
 		Convey("delegate to structure", func() {
 			s := structExample{}
-			o.GetStruct(&s)
+			o.GetStruct("", &s)
 			ex := structExample{
 				Key0:     42,
 				Universe: "universe",
@@ -150,7 +167,7 @@ func TestOnion(t *testing.T) {
 			}
 			So(reflect.DeepEqual(s, ex), ShouldBeTrue)
 			var tmp []string
-			o.GetStruct(tmp)
+			o.GetStruct("", tmp)
 			So(tmp, ShouldBeNil)
 		})
 

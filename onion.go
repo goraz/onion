@@ -60,7 +60,7 @@ func (o Onion) Get(key string) (interface{}, bool) {
 	path := strings.Split(strings.ToLower(key), o.GetDelimiter())
 	for i := len(o.ll) - 1; i >= 0; i-- {
 		l := o.layers[o.ll[i]]
-		res, found := searchMap(path, l)
+		res, found := searchStringMap(path, l)
 		if found {
 			return res, found
 		}
@@ -69,7 +69,12 @@ func (o Onion) Get(key string) (interface{}, bool) {
 	return nil, false
 }
 
-func searchMap(path []string, m map[string]interface{}) (interface{}, bool) {
+// The folowing two function is identical. but converting between map[string] and
+// map[interface{}] is not easy, and there is no Generic, so I decide to create
+// two almost identical function instead of writing a convertor each time
+// Some of the loaders like yaml, load inner keys in map[interface{}]interface{}
+// some othr like json do it in map[string]interface{} so we should suppport both
+func searchStringMap(path []string, m map[string]interface{}) (interface{}, bool) {
 	v, ok := m[path[0]]
 	if !ok {
 		return nil, false
@@ -81,7 +86,28 @@ func searchMap(path []string, m map[string]interface{}) (interface{}, bool) {
 
 	switch v.(type) {
 	case map[string]interface{}:
-		return searchMap(path[1:], v.(map[string]interface{}))
+		return searchStringMap(path[1:], v.(map[string]interface{}))
+	case map[interface{}]interface{}:
+		return searchInterfaceMap(path[1:], v.(map[interface{}]interface{}))
+	}
+	return nil, false
+}
+
+func searchInterfaceMap(path []string, m map[interface{}]interface{}) (interface{}, bool) {
+	v, ok := m[path[0]]
+	if !ok {
+		return nil, false
+	}
+
+	if len(path) == 1 {
+		return v, true
+	}
+
+	switch v.(type) {
+	case map[string]interface{}:
+		return searchStringMap(path[1:], v.(map[string]interface{}))
+	case map[interface{}]interface{}:
+		return searchInterfaceMap(path[1:], v.(map[interface{}]interface{}))
 	}
 	return nil, false
 }
@@ -177,8 +203,8 @@ func (o Onion) GetBool(key string, def bool) bool {
 }
 
 // GetStruct fill an structure base on the config nested set
-func (o Onion) GetStruct(s interface{}) {
-	iterateConfig(o, s, "")
+func (o Onion) GetStruct(prefix string, s interface{}) {
+	iterateConfig(o, s, prefix)
 }
 
 func iterateConfig(o Onion, c interface{}, op string) {

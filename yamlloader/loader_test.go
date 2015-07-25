@@ -1,4 +1,4 @@
-package onion
+package yamlloader
 
 import (
 	"bytes"
@@ -6,20 +6,32 @@ import (
 	"os"
 	"testing"
 
+	. "github.com/fzerorubigd/onion"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestFileLayer(t *testing.T) {
-	Convey("FileLayer test ", t, func() {
+func TestYamlLoader(t *testing.T) {
+	Convey("Load a yaml structure into a json", t, func() {
 		// Make sure there is two ile available in the tmp file system
 		tmp := os.TempDir()
 		dir := tmp + "/onion_f"
 		So(os.MkdirAll(dir, 0744), ShouldBeNil)
-		path := dir + "/test.json"
-		path2 := dir + "/invalid.json"
+		path := dir + "/test.yaml"
+		path2 := dir + "/invalid.yml"
 
-		buf := bytes.NewBufferString(`{"str" : "string_data","bool" : true,"integer" : 10 ,"nested" : {"key1" : "string","key2" : 100}}`)
-		bufInvalid := bytes.NewBufferString(`invalid{json}[]`)
+		buf := bytes.NewBufferString(`---
+  str: "string_data"
+  bool: true
+  integer: 10
+  nested:
+    key1: "string"
+    key2: 100
+`)
+		bufInvalid := bytes.NewBufferString(`---
+str: - inv
+  lid
+ s
+ALALA`)
 		f, err := os.Create(path)
 		So(err, ShouldBeNil)
 		_, err = io.Copy(f, buf)
@@ -51,28 +63,8 @@ func TestFileLayer(t *testing.T) {
 			So(a.AddLayer(fl), ShouldBeNil)
 		})
 
-		Convey("Check for the invalid ext", func() {
-			f, err := os.Create(path + ".invalid_ext")
-			So(err, ShouldBeNil)
-			defer func() {
-				_ = os.Remove(path + ".invalid_ext")
-			}()
-			So(f.Close(), ShouldBeNil)
-			fl := NewFileLayer(path + ".invalid_ext")
-			o := New()
-			err = o.AddLayer(fl)
-			So(err, ShouldNotBeNil)
-		})
-
 		Convey("Check for the invalid file content", func() {
 			fl := NewFileLayer(path2)
-			o := New()
-			err = o.AddLayer(fl)
-			So(err, ShouldNotBeNil)
-		})
-
-		Convey("Check for the invalid file", func() {
-			fl := NewFileLayer(path + "imnothere.json")
 			o := New()
 			err = o.AddLayer(fl)
 			So(err, ShouldNotBeNil)
