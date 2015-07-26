@@ -69,9 +69,10 @@ func (o Onion) Get(key string) (interface{}, bool) {
 	return nil, false
 }
 
-// The folowing two function is identical. but converting between map[string] and
-// map[interface{}] is not easy, and there is no Generic, so I decide to create
-// two almost identical function instead of writing a convertor each time
+// The folowing two function are identical. but converting between map[string] and
+// map[interface{}] is not easy, and there is no _Generic_ , so I decide to create
+// two almost identical function instead of writing a convertor each time.
+//
 // Some of the loaders like yaml, load inner keys in map[interface{}]interface{}
 // some othr like json do it in map[string]interface{} so we should suppport both
 func searchStringMap(path []string, m map[string]interface{}) (interface{}, bool) {
@@ -200,6 +201,44 @@ func (o Onion) GetBool(key string, def bool) bool {
 	default:
 		return def
 	}
+}
+
+func (o Onion) getSlice(key string) (interface{}, bool) {
+	v, ok := o.Get(key)
+	if !ok {
+		return nil, false
+	}
+
+	if reflect.TypeOf(v).Kind() != reflect.Slice { // Not good
+		return nil, false
+	}
+
+	return v, true
+}
+
+// GetStringSlice try to get a slice from the config
+func (o Onion) GetStringSlice(key string) []string {
+	var ok bool
+	v, ok := o.getSlice(key)
+	if !ok {
+		return nil
+	}
+
+	switch v.(type) {
+	case []string:
+		return v.([]string)
+	case []interface{}:
+		vi := v.([]interface{})
+		res := make([]string, len(vi))
+		for i := range vi {
+			if res[i], ok = vi[i].(string); !ok {
+				return nil
+			}
+		}
+		return res
+	}
+
+	return nil
 }
 
 // GetStruct fill an structure base on the config nested set

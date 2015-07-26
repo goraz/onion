@@ -61,6 +61,10 @@ func TestOnion(t *testing.T) {
 		t1["other"] = struct{}{}
 		t1["what"] = getMap("n", "a")
 		lm.data["yes"] = t1
+		lm.data["slice1"] = []string{"a", "b", "c"}
+		lm.data["slice2"] = []interface{}{"a", "b", "c"}
+		lm.data["slice3"] = []interface{}{"a", "b", true}
+		lm.data["slice4"] = []int{1, 2, 3}
 
 		o := New()
 		So(o.AddLayer(lm), ShouldBeNil)
@@ -171,6 +175,14 @@ func TestOnion(t *testing.T) {
 			So(tmp, ShouldBeNil)
 		})
 
+		Convey("slice test", func() {
+			So(reflect.DeepEqual(o.GetStringSlice("slice1"), []string{"a", "b", "c"}), ShouldBeTrue)
+			So(reflect.DeepEqual(o.GetStringSlice("slice2"), []string{"a", "b", "c"}), ShouldBeTrue)
+			So(o.GetStringSlice("slice3"), ShouldBeNil)
+			So(o.GetStringSlice("notslice3"), ShouldBeNil)
+			So(o.GetStringSlice("yes.str1"), ShouldBeNil)
+			So(o.GetStringSlice("slice4"), ShouldBeNil)
+		})
 	})
 
 	Convey("Test layer overwrite", t, func() {

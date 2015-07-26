@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"reflect"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -18,7 +19,7 @@ func TestFileLayer(t *testing.T) {
 		path := dir + "/test.json"
 		path2 := dir + "/invalid.json"
 
-		buf := bytes.NewBufferString(`{"str" : "string_data","bool" : true,"integer" : 10 ,"nested" : {"key1" : "string","key2" : 100}}`)
+		buf := bytes.NewBufferString(`{"slicestr":["a","b","c"],"str" : "string_data","bool" : true,"integer" : 10 ,"nested" : {"key1" : "string","key2" : 100}}`)
 		bufInvalid := bytes.NewBufferString(`invalid{json}[]`)
 		f, err := os.Create(path)
 		So(err, ShouldBeNil)
@@ -46,6 +47,7 @@ func TestFileLayer(t *testing.T) {
 			So(o.GetString("nested.key1", ""), ShouldEqual, "string")
 			So(o.GetInt("nested.key2", 0), ShouldEqual, 100)
 			So(o.GetBool("bool", false), ShouldBeTrue)
+			So(reflect.DeepEqual(o.GetStringSlice("slicestr"), []string{"a", "b", "c"}), ShouldBeTrue)
 
 			a := New() // Just for test load again
 			So(a.AddLayer(fl), ShouldBeNil)
