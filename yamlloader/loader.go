@@ -1,3 +1,12 @@
+// Package yamlloader is used to handle yaml file in Onion file/folder layer.
+// for using this package, just import it
+//
+// 		import (
+//			_ "github.com/fzerorubigd/onion/yamlloader"
+//		)
+//
+// There is no need to do anything else, if you load a file with yaml/yml
+// extension, the yaml loader is doing his job.
 package yamlloader
 
 import (
