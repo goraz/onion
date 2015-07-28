@@ -1,12 +1,14 @@
 # onion
+
+[![Build Status](https://travis-ci.org/fzerorubigd/onion.svg)](https://travis-ci.org/fzerorubigd/onion)
+[![Coverage Status](https://coveralls.io/repos/fzerorubigd/onion/badge.svg?branch=master&service=github)](https://coveralls.io/github/fzerorubigd/onion?branch=master)
+[![GoDoc](https://godoc.org/github.com/fzerorubigd/onion?status.svg)](https://godoc.org/github.com/fzerorubigd/onion)
+
 --
     import "github.com/fzerorubigd/onion"
 
 Package onion is a layer based, pluggable config manager for golang.
 
-[![Build Status](https://travis-ci.org/fzerorubigd/onion.svg)](https://travis-ci.org/fzerorubigd/onion)
-[![Coverage Status](https://coveralls.io/repos/fzerorubigd/onion/badge.svg?branch=master&service=github)](https://coveralls.io/github/fzerorubigd/onion?branch=master)
-[![GoDoc](https://godoc.org/github.com/fzerorubigd/onion?status.svg)](https://godoc.org/github.com/fzerorubigd/onion)
 
 ## Layers
 
@@ -18,7 +20,9 @@ layer type is supported.
 
 File layer is the basic one.
 
+```go
     l := onion.NewFileLayer("/path/to/the/file.ext")
+```
 
 the onion package only support for json extension by itself, and there is toml
 and yaml loader available as sub package for this one.
@@ -31,9 +35,9 @@ and call the RegisterLoader function with your loader object
 
 Folder layer is much like file layer but it get a folder and search for the
 first file with tha specific name and supported extension
-
+```go
     l := onion.NewFolderLayer("/path/to/folder", "filename")
-
+```
 the file name part is WHITOUT extension. library check for supported loader
 extension in that folder and return the first one.
 
@@ -42,16 +46,16 @@ extension in that folder and return the first one.
 
 The other layer is env layer. this layer accept a whitelist of env variables and
 use them as value .
-
+```go
     l := onion.NewEnvLayer("PORT", "STATIC_ROOT", "NEXT")
-
+```
 this layer currently dose not support nested variables.
 
 
 ## Getting from config
 
 After adding layers to config, its easy to get the config values.
-
+```go
     o := onion.New()
     o.AddLayer(l1)
     o.AddLayer(l2)
@@ -60,9 +64,9 @@ After adding layers to config, its easy to get the config values.
     o.GetBool("anotherkey", true)
 
     o.GetInt("worker.count", 10) // Nested value
-
+```
 library also support for mapping data to a structure. define your structure :
-
+```go
     type MyStruct struct {
         Key1 string
         Key2 int
@@ -78,7 +82,7 @@ library also support for mapping data to a structure. define your structure :
     // Add layers.....
     c := MyStruct{}
     o.GetStruct("prefix", &c)
-
+```
 the the c.Key1 is equal to o.GetString("prefix.key1", c.Key1) , note that the
 value before calling this function is used as default value, when the type is
 not matched or the value is not exists, the the default is returned For changing
