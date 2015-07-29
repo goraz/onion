@@ -17,7 +17,7 @@ type layerList []Layer
 
 // Onion is a layer base configuration system
 type Onion struct {
-	lock      *sync.Mutex
+	lock      sync.RWMutex
 	delimiter string
 	ll        layerList
 	// A simple cache system, should have a way to refresh
@@ -36,7 +36,10 @@ func (o *Onion) AddLayer(l Layer) error {
 	}
 
 	o.ll = append(o.ll, l)
-	o.layers[l] = lowerMap(data)
+	if o.layers == nil {
+		o.layers = make(map[Layer]map[string]interface{})
+	}
+	o.layers[l] = lowerStringMap(data)
 
 	return nil
 }
@@ -56,7 +59,14 @@ func (o *Onion) SetDelimiter(d string) {
 }
 
 // Get try to get the key from config layers
-func (o Onion) Get(key string) (interface{}, bool) {
+func (o *Onion) Get(key string) (interface{}, bool) {
+	o.lock.RLock()
+	defer o.lock.RUnlock()
+
+	if o.layers == nil {
+		o.layers = make(map[Layer]map[string]interface{})
+	}
+
 	path := strings.Split(strings.ToLower(key), o.GetDelimiter())
 	for i := len(o.ll) - 1; i >= 0; i-- {
 		l := o.layers[o.ll[i]]
@@ -113,12 +123,14 @@ func searchInterfaceMap(path []string, m map[interface{}]interface{}) (interface
 	return nil, false
 }
 
-func lowerMap(m map[string]interface{}) map[string]interface{} {
+func lowerStringMap(m map[string]interface{}) map[string]interface{} {
 	res := make(map[string]interface{})
 	for k := range m {
 		switch m[k].(type) {
 		case map[string]interface{}:
-			res[strings.ToLower(k)] = lowerMap(m[k].(map[string]interface{}))
+			res[strings.ToLower(k)] = lowerStringMap(m[k].(map[string]interface{}))
+		case map[interface{}]interface{}:
+			res[strings.ToLower(k)] = lowerInterfaceMap(m[k].(map[interface{}]interface{}))
 		default:
 			res[strings.ToLower(k)] = m[k]
 		}
@@ -127,9 +139,30 @@ func lowerMap(m map[string]interface{}) map[string]interface{} {
 	return res
 }
 
+func lowerInterfaceMap(m map[interface{}]interface{}) map[interface{}]interface{} {
+	res := make(map[interface{}]interface{})
+	for k := range m {
+		switch k.(type) {
+		case string:
+			switch m[k].(type) {
+			case map[string]interface{}:
+				res[strings.ToLower(k.(string))] = lowerStringMap(m[k].(map[string]interface{}))
+			case map[interface{}]interface{}:
+				res[strings.ToLower(k.(string))] = lowerInterfaceMap(m[k].(map[interface{}]interface{}))
+			default:
+				res[strings.ToLower(k.(string))] = m[k]
+			}
+		default:
+			res[k] = m[k]
+		}
+	}
+
+	return res
+}
+
 // GetInt return an int value from Onion, if the value is not exists or its not an
 // integer , default is returned
-func (o Onion) GetInt(key string, def int) int {
+func (o *Onion) GetInt(key string, def int) int {
 	return int(o.GetInt64(key, int64(def)))
 }
 
@@ -165,7 +198,7 @@ func (o Onion) GetInt64(key string, def int64) int64 {
 
 // GetString get a string from Onion. if the value is not exists or if tha value is not
 // string, return the default
-func (o Onion) GetString(key string, def string) string {
+func (o *Onion) GetString(key string, def string) string {
 	v, ok := o.Get(key)
 	if !ok {
 		return def
@@ -181,7 +214,7 @@ func (o Onion) GetString(key string, def string) string {
 
 // GetBool return bool value from Onion. if the value is not exists or if tha value is not
 // boolean, return the default
-func (o Onion) GetBool(key string, def bool) bool {
+func (o *Onion) GetBool(key string, def bool) bool {
 	v, ok := o.Get(key)
 	if !ok {
 		return def
@@ -203,7 +236,7 @@ func (o Onion) GetBool(key string, def bool) bool {
 	}
 }
 
-func (o Onion) getSlice(key string) (interface{}, bool) {
+func (o *Onion) getSlice(key string) (interface{}, bool) {
 	v, ok := o.Get(key)
 	if !ok {
 		return nil, false
@@ -217,7 +250,7 @@ func (o Onion) getSlice(key string) (interface{}, bool) {
 }
 
 // GetStringSlice try to get a slice from the config
-func (o Onion) GetStringSlice(key string) []string {
+func (o *Onion) GetStringSlice(key string) []string {
 	var ok bool
 	v, ok := o.getSlice(key)
 	if !ok {
@@ -242,11 +275,11 @@ func (o Onion) GetStringSlice(key string) []string {
 }
 
 // GetStruct fill an structure base on the config nested set
-func (o Onion) GetStruct(prefix string, s interface{}) {
+func (o *Onion) GetStruct(prefix string, s interface{}) {
 	iterateConfig(o, s, prefix)
 }
 
-func iterateConfig(o Onion, c interface{}, op string) {
+func iterateConfig(o *Onion, c interface{}, op string) {
 	prefix := op
 	if prefix != "" {
 		prefix = prefix + o.GetDelimiter()
@@ -305,7 +338,7 @@ func iterateConfig(o Onion, c interface{}, op string) {
 // New return a new Onion
 func New() *Onion {
 	return &Onion{
-		lock:      &sync.Mutex{},
+		lock:      sync.RWMutex{},
 		delimiter: ".",
 		layers:    make(map[Layer]map[string]interface{}),
 	}

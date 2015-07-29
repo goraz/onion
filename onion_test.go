@@ -57,9 +57,15 @@ func TestOnion(t *testing.T) {
 		t1 := make(map[interface{}]interface{})
 		t1["str1"] = 1
 		t1["str2"] = "hi"
-		t1["nested"] = t1
 		t1["other"] = struct{}{}
 		t1["what"] = getMap("n", "a")
+		t2 := make(map[interface{}]interface{})
+		for k, v := range t1 {
+			t2[k] = v
+		}
+		t1["nested"] = t2
+		t2[true] = false
+
 		lm.data["yes"] = t1
 		lm.data["slice1"] = []string{"a", "b", "c"}
 		lm.data["slice2"] = []interface{}{"a", "b", "c"}
@@ -204,5 +210,14 @@ func TestOnion(t *testing.T) {
 		So(o.GetInt64("test0", 0), ShouldEqual, 3)
 		So(o.GetBool("test1", false), ShouldBeTrue)
 		So(o.GetBool("test2", false), ShouldBeFalse)
+	})
+
+	Convey("test direct creation", t, func() {
+		o := &Onion{}
+		So(o.GetInt("empty", 1000), ShouldEqual, 1000)
+		lm := &layerMock{getMap("test", 1, true)}
+		o1 := &Onion{}
+		o1.AddLayer(lm)
+		So(o1.GetInt("test0", 0), ShouldEqual, 1)
 	})
 }
