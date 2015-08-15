@@ -75,60 +75,60 @@ func TestOnion(t *testing.T) {
 		o := New()
 		So(o.AddLayer(lm), ShouldBeNil)
 		Convey("Get direct variable", func() {
-			So(o.GetInt("key0", 0), ShouldEqual, 42)
-			So(o.GetString("key1", ""), ShouldEqual, "universe")
-			So(o.GetString("key2", ""), ShouldEqual, "answer")
-			So(o.GetBool("key3", false), ShouldBeTrue)
-			So(o.GetInt("key4", 0), ShouldEqual, 20)
-			So(o.GetInt("key5", 0), ShouldEqual, 200)
-			So(o.GetInt("key6", 0), ShouldEqual, 100)
+			So(o.GetInt("key0"), ShouldEqual, 42)
+			So(o.GetString("key1"), ShouldEqual, "universe")
+			So(o.GetString("key2"), ShouldEqual, "answer")
+			So(o.GetBool("key3"), ShouldBeTrue)
+			So(o.GetInt("key4"), ShouldEqual, 20)
+			So(o.GetInt("key5"), ShouldEqual, 200)
+			So(o.GetInt("key6"), ShouldEqual, 100)
 
-			So(o.GetInt64("key0", 0), ShouldEqual, 42)
-			So(o.GetInt64("key4", 0), ShouldEqual, 20)
-			So(o.GetInt64("key5", 0), ShouldEqual, 200)
-			So(o.GetInt64("key6", 0), ShouldEqual, 100)
+			So(o.GetInt64("key0"), ShouldEqual, 42)
+			So(o.GetInt64("key4"), ShouldEqual, 20)
+			So(o.GetInt64("key5"), ShouldEqual, 200)
+			So(o.GetInt64("key6"), ShouldEqual, 100)
 		})
 
 		Convey("Get default value", func() {
-			So(o.GetInt("key1", 0), ShouldEqual, 0)
-			So(o.GetInt("nokey1", 0), ShouldEqual, 0)
+			So(o.GetIntDefault("key1", 0), ShouldEqual, 0)
+			So(o.GetIntDefault("nokey1", 0), ShouldEqual, 0)
 
-			So(o.GetString("key0", ""), ShouldEqual, "")
-			So(o.GetString("nokey0", ""), ShouldEqual, "")
+			So(o.GetStringDefault("key0", ""), ShouldEqual, "")
+			So(o.GetStringDefault("nokey0", ""), ShouldEqual, "")
 
-			So(o.GetBool("key0", false), ShouldBeFalse)
-			So(o.GetBool("nokey0", false), ShouldBeFalse)
+			So(o.GetBoolDefault("key0", false), ShouldBeFalse)
+			So(o.GetBoolDefault("nokey0", false), ShouldBeFalse)
 
-			So(o.GetInt64("key1", 0), ShouldEqual, 0)
-			So(o.GetInt64("nokey1", 0), ShouldEqual, 0)
+			So(o.GetInt64Default("key1", 0), ShouldEqual, 0)
+			So(o.GetInt64Default("nokey1", 0), ShouldEqual, 0)
 
-			So(o.GetInt64("", 0), ShouldEqual, 0) // Empty key
-			So(o.GetInt64("key3", 10000), ShouldEqual, 10000)
+			So(o.GetInt64Default("", 0), ShouldEqual, 0) // Empty key
+			So(o.GetInt64Default("key3", 10000), ShouldEqual, 10000)
 		})
 
 		Convey("Get nested variable", func() {
-			So(o.GetString("nested.n0", ""), ShouldEqual, "a")
-			So(o.GetInt64("nested.n1", 0), ShouldEqual, 99)
-			So(o.GetInt("nested.n1", 0), ShouldEqual, 99)
-			So(o.GetBool("nested.n2", false), ShouldEqual, true)
+			So(o.GetStringDefault("nested.n0", ""), ShouldEqual, "a")
+			So(o.GetInt64Default("nested.n1", 0), ShouldEqual, 99)
+			So(o.GetIntDefault("nested.n1", 0), ShouldEqual, 99)
+			So(o.GetBoolDefault("nested.n2", false), ShouldEqual, true)
 
-			So(o.GetInt("yes.str1", 0), ShouldEqual, 1)
-			So(o.GetString("yes.str2", ""), ShouldEqual, "hi")
+			So(o.GetIntDefault("yes.str1", 0), ShouldEqual, 1)
+			So(o.GetStringDefault("yes.str2", ""), ShouldEqual, "hi")
 
-			So(o.GetString("yes.nested.str2", ""), ShouldEqual, "hi")
-			So(o.GetString("yes.what.n0", ""), ShouldEqual, "a")
+			So(o.GetStringDefault("yes.nested.str2", ""), ShouldEqual, "hi")
+			So(o.GetStringDefault("yes.what.n0", ""), ShouldEqual, "a")
 		})
 
 		Convey("Get nested default variable", func() {
-			So(o.GetString("nested.n01", ""), ShouldEqual, "")
-			So(o.GetString("key0.n01", ""), ShouldEqual, "")
-			So(o.GetInt64("nested.n11", 0), ShouldEqual, 0)
-			So(o.GetInt("nested.n11", 0), ShouldEqual, 0)
-			So(o.GetBool("nested.n21", false), ShouldEqual, false)
+			So(o.GetStringDefault("nested.n01", ""), ShouldEqual, "")
+			So(o.GetStringDefault("key0.n01", ""), ShouldEqual, "")
+			So(o.GetInt64Default("nested.n11", 0), ShouldEqual, 0)
+			So(o.GetIntDefault("nested.n11", 0), ShouldEqual, 0)
+			So(o.GetBoolDefault("nested.n21", false), ShouldEqual, false)
 
-			So(o.GetString("yes.nested.no", "def"), ShouldEqual, "def")
-			So(o.GetString("yes.nested.other.key", "def"), ShouldEqual, "def")
-			So(o.GetString("yes.what.no", "def"), ShouldEqual, "def")
+			So(o.GetStringDefault("yes.nested.no", "def"), ShouldEqual, "def")
+			So(o.GetStringDefault("yes.nested.other.key", "def"), ShouldEqual, "def")
+			So(o.GetStringDefault("yes.what.no", "def"), ShouldEqual, "def")
 		})
 
 		Convey("change delimiter", func() {
@@ -136,15 +136,15 @@ func TestOnion(t *testing.T) {
 			o.SetDelimiter("/")
 			So(o.GetDelimiter(), ShouldEqual, "/")
 			Convey("get with modified delimiter", func() {
-				So(o.GetString("nested/n0", ""), ShouldEqual, "a")
-				So(o.GetInt64("nested/n1", 0), ShouldEqual, 99)
-				So(o.GetInt("nested/n1", 0), ShouldEqual, 99)
-				So(o.GetBool("nested/n2", false), ShouldEqual, true)
-				So(o.GetString("nested.n0", ""), ShouldEqual, "")
-				So(o.GetInt64("nested.n1", 0), ShouldEqual, 0)
-				So(o.GetInt("nested.n1", 0), ShouldEqual, 0)
-				So(o.GetBool("nested.n2", false), ShouldEqual, false)
-				So(o.GetString("key0/n01", ""), ShouldEqual, "")
+				So(o.GetStringDefault("nested/n0", ""), ShouldEqual, "a")
+				So(o.GetInt64Default("nested/n1", 0), ShouldEqual, 99)
+				So(o.GetIntDefault("nested/n1", 0), ShouldEqual, 99)
+				So(o.GetBoolDefault("nested/n2", false), ShouldEqual, true)
+				So(o.GetStringDefault("nested.n0", ""), ShouldEqual, "")
+				So(o.GetInt64Default("nested.n1", 0), ShouldEqual, 0)
+				So(o.GetIntDefault("nested.n1", 0), ShouldEqual, 0)
+				So(o.GetBoolDefault("nested.n2", false), ShouldEqual, false)
+				So(o.GetStringDefault("key0/n01", ""), ShouldEqual, "")
 			})
 
 			o.SetDelimiter("")
@@ -201,23 +201,23 @@ func TestOnion(t *testing.T) {
 
 		o := New()
 		o.AddLayer(lm1)
-		So(o.GetInt64("test0", 0), ShouldEqual, 1)
-		So(o.GetBool("test1", false), ShouldBeTrue)
+		So(o.GetInt64Default("test0", 0), ShouldEqual, 1)
+		So(o.GetBoolDefault("test1", false), ShouldBeTrue)
 		o.AddLayer(lm2)
-		So(o.GetInt64("test0", 0), ShouldEqual, 2)
-		So(o.GetBool("test1", true), ShouldBeFalse)
+		So(o.GetInt64Default("test0", 0), ShouldEqual, 2)
+		So(o.GetBoolDefault("test1", true), ShouldBeFalse)
 		o.AddLayer(lm3) // Special case in ENV loader
-		So(o.GetInt64("test0", 0), ShouldEqual, 3)
-		So(o.GetBool("test1", false), ShouldBeTrue)
-		So(o.GetBool("test2", false), ShouldBeFalse)
+		So(o.GetInt64Default("test0", 0), ShouldEqual, 3)
+		So(o.GetBoolDefault("test1", false), ShouldBeTrue)
+		So(o.GetBoolDefault("test2", false), ShouldBeFalse)
 	})
 
 	Convey("test direct creation", t, func() {
 		o := &Onion{}
-		So(o.GetInt("empty", 1000), ShouldEqual, 1000)
+		So(o.GetIntDefault("empty", 1000), ShouldEqual, 1000)
 		lm := &layerMock{getMap("test", 1, true)}
 		o1 := &Onion{}
 		o1.AddLayer(lm)
-		So(o1.GetInt("test0", 0), ShouldEqual, 1)
+		So(o1.GetIntDefault("test0", 0), ShouldEqual, 1)
 	})
 }

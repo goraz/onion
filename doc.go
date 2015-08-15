@@ -5,6 +5,15 @@ Layers
 Each config object can has more than one config layer. currently there is 3 layer
 type is supported.
 
+Default layer
+
+This layer is special layer to set default for configs. usage is simple :
+
+    l := onion.NewDefaultLayer()
+    l.SetDefault("my.daughter.name", "bita")
+
+This layer must be addedbefore all other layer, and defaults must be added before adding it to onion
+
 File layer
 
 File layer is the basic one.
@@ -27,7 +36,7 @@ first file with tha specific name and supported extension
 the file name part is WHITOUT extension. library check for supported loader
 extension in that folder and return the first one.
 
-ENV Loader
+ENV layer
 
 The other layer is env layer. this layer accept a whitelist of env variables
 and use them as value .
@@ -35,6 +44,10 @@ and use them as value .
     l := onion.NewEnvLayer("PORT", "STATIC_ROOT", "NEXT")
 
 this layer currently dose not support nested variables.
+
+YOUR layer
+
+Just implement the onion.Layer interface!
 
 Getting from config
 

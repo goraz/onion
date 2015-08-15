@@ -16,7 +16,18 @@ Each config object can has more than one config layer. currently there is 3
 layer type is supported.
 
 
-### File layer
+### Default layer
+
+This layer is special layer to set default for configs. usage is simple :
+
+    l := onion.NewDefaultLayer()
+    l.SetDefault("my.daughter.name", "bita")
+
+This layer must be addedbefore all other layer, and defaults must be added
+before adding it to onion
+
+
+File layer
 
 File layer is the basic one.
 
@@ -50,6 +61,11 @@ use them as key for the env variables.
 l := onion.NewEnvLayer("PORT", "STATIC_ROOT", "NEXT")
 ```
 this layer currently dose not support nested variables.
+
+
+### YOUR layer
+
+Just implement the onion.Layer interface!
 
 
 ## Getting from config
@@ -99,6 +115,32 @@ Also nested struct (and embeded ones) are supported too.
 func RegisterLoader(l FileLoader)
 ```
 RegisterLoader must be called to register a type loaer
+
+#### type DefaultLayer
+
+```go
+type DefaultLayer interface {
+	Layer
+	// SetDefault set a default value for a key
+	SetDefault(string, interface{}) error
+	// GetDelimiter is used to get current delimiter for this layer. since
+	// this layer needs to work with keys, the delimiter is needed
+	GetDelimiter() string
+	// SetDelimiter is used to set delimiter on this layer
+	SetDelimiter(d string)
+}
+```
+
+DefaultLayer is a layer to handle defalt value for layer.
+
+#### func  NewDefaultLayer
+
+```go
+func NewDefaultLayer() DefaultLayer
+```
+NewDefaultLayer is used to return a default layer. shoud load this layer before
+any other layer, and before ading it, must add default value before adding this
+layer to onion.
 
 #### type FileLoader
 
@@ -174,65 +216,95 @@ func (o *Onion) AddLayer(l Layer) error
 AddLayer add a new layer to the end of config layers. last layer is loaded after
 all other layer
 
-#### func (Onion) Get
+#### func (*Onion) Get
 
 ```go
-func (o Onion) Get(key string) (interface{}, bool)
+func (o *Onion) Get(key string) (interface{}, bool)
 ```
 Get try to get the key from config layers
 
-#### func (Onion) GetBool
+#### func (*Onion) GetBool
 
 ```go
-func (o Onion) GetBool(key string, def bool) bool
+func (o *Onion) GetBool(key string) bool
 ```
-GetBool return bool value from Onion. if the value is not exists or if tha value
-is not boolean, return the default
+GetBool is used to get a boolean value fro config, with false as default
 
-#### func (Onion) GetDelimiter
+#### func (*Onion) GetBoolDefault
 
 ```go
-func (o Onion) GetDelimiter() string
+func (o *Onion) GetBoolDefault(key string, def bool) bool
+```
+GetBoolDefault return bool value from Onion. if the value is not exists or if
+tha value is not boolean, return the default
+
+#### func (*Onion) GetDelimiter
+
+```go
+func (o *Onion) GetDelimiter() string
 ```
 GetDelimiter return the delimiter for nested key
 
-#### func (Onion) GetInt
+#### func (*Onion) GetInt
 
 ```go
-func (o Onion) GetInt(key string, def int) int
+func (o *Onion) GetInt(key string) int
 ```
-GetInt return an int value from Onion, if the value is not exists or its not an
-integer , default is returned
+GetInt return an int value, if the value is not there, then it return zero value
 
-#### func (Onion) GetInt64
+#### func (*Onion) GetInt64
 
 ```go
-func (o Onion) GetInt64(key string, def int64) int64
+func (o *Onion) GetInt64(key string) int64
 ```
-GetInt64 return an int64 value from Onion, if the value is not exists or if the
-value is not int64 then return the default
+GetInt64 return the int64 value from config, if its not there, return zero
 
-#### func (Onion) GetString
+#### func (*Onion) GetInt64Default
 
 ```go
-func (o Onion) GetString(key string, def string) string
+func (o *Onion) GetInt64Default(key string, def int64) int64
 ```
-GetString get a string from Onion. if the value is not exists or if tha value is
-not string, return the default
+GetInt64Default return an int64 value from Onion, if the value is not exists or
+if the value is not int64 then return the default
 
-#### func (Onion) GetStringSlice
+#### func (*Onion) GetIntDefault
 
 ```go
-func (o Onion) GetStringSlice(key string) []string
+func (o *Onion) GetIntDefault(key string, def int) int
+```
+GetIntDefault return an int value from Onion, if the value is not exists or its
+not an integer , default is returned
+
+#### func (*Onion) GetString
+
+```go
+func (o *Onion) GetString(key string) string
+```
+GetString is for getting an string from conig. if the key is not
+
+#### func (*Onion) GetStringDefault
+
+```go
+func (o *Onion) GetStringDefault(key string, def string) string
+```
+GetStringDefault get a string from Onion. if the value is not exists or if tha
+value is not string, return the default
+
+#### func (*Onion) GetStringSlice
+
+```go
+func (o *Onion) GetStringSlice(key string) []string
 ```
 GetStringSlice try to get a slice from the config
 
-#### func (Onion) GetStruct
+#### func (*Onion) GetStruct
 
 ```go
-func (o Onion) GetStruct(prefix string, s interface{})
+func (o *Onion) GetStruct(prefix string, s interface{})
 ```
-GetStruct fill an structure base on the config nested set
+GetStruct fill an structure base on the config nested set, this function use
+reflection, and its not good (in my opinion) for frequent call. but its best if
+you need the config to loaded in structure and use that structure after that.
 
 #### func (*Onion) SetDelimiter
 

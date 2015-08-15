@@ -16,19 +16,32 @@ func pwd() string {
 	return dir
 }
 
+func panicOnErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 
 	conf := onion.New()
 
-	err := conf.AddLayer(onion.NewFileLayer(filepath.Join(pwd(), "test.json")))
-	if err != nil {
-		log.Fatal(err)
-	}
+	def := onion.NewDefaultLayer()
+	err := def.SetDefault("port", 6998)
+	panicOnErr(err)
+
+	err = conf.AddLayer(def)
+	panicOnErr(err)
+
+	log.Printf("the port is %d (default layer)", conf.GetInt("port"))
+
+	err = conf.AddLayer(onion.NewFileLayer(filepath.Join(pwd(), "test.json")))
+	panicOnErr(err)
+
+	log.Printf("the port is %d (file layer)", conf.GetInt("port"))
 
 	err = conf.AddLayer(onion.NewEnvLayer("PORT"))
-	if err != nil {
-		log.Fatal(err)
-	}
+	panicOnErr(err)
 
-	log.Printf("the port is %d", conf.GetInt("port", 0))
+	log.Printf("the final port is %d, Try to set PORT in env and try again", conf.GetInt("port"))
 }

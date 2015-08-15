@@ -38,7 +38,7 @@ func TestEnvLayer(t *testing.T) {
 				err := o.AddLayer(el)
 				So(err, ShouldBeNil)
 
-				So(o.GetString("black", "no!"), ShouldEqual, "blacklisted")
+				So(o.GetStringDefault("black", "no!"), ShouldEqual, "blacklisted")
 			})
 		})
 	})

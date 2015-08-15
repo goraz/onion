@@ -45,7 +45,7 @@ func (o *Onion) AddLayer(l Layer) error {
 }
 
 // GetDelimiter return the delimiter for nested key
-func (o Onion) GetDelimiter() string {
+func (o *Onion) GetDelimiter() string {
 	if o.delimiter == "" {
 		o.delimiter = "."
 	}
@@ -160,15 +160,20 @@ func lowerInterfaceMap(m map[interface{}]interface{}) map[interface{}]interface{
 	return res
 }
 
-// GetInt return an int value from Onion, if the value is not exists or its not an
+// GetIntDefault return an int value from Onion, if the value is not exists or its not an
 // integer , default is returned
-func (o *Onion) GetInt(key string, def int) int {
-	return int(o.GetInt64(key, int64(def)))
+func (o *Onion) GetIntDefault(key string, def int) int {
+	return int(o.GetInt64Default(key, int64(def)))
 }
 
-// GetInt64 return an int64 value from Onion, if the value is not exists or if the value is not
+// GetInt return an int value, if the value is not there, then it return zero value
+func (o *Onion) GetInt(key string) int {
+	return o.GetIntDefault(key, 0)
+}
+
+// GetInt64Default return an int64 value from Onion, if the value is not exists or if the value is not
 // int64 then return the default
-func (o Onion) GetInt64(key string, def int64) int64 {
+func (o *Onion) GetInt64Default(key string, def int64) int64 {
 	v, ok := o.Get(key)
 	if !ok {
 		return def
@@ -196,9 +201,14 @@ func (o Onion) GetInt64(key string, def int64) int64 {
 	}
 }
 
-// GetString get a string from Onion. if the value is not exists or if tha value is not
+// GetInt64 return the int64 value from config, if its not there, return zero
+func (o *Onion) GetInt64(key string) int64 {
+	return o.GetInt64Default(key, 0)
+}
+
+// GetStringDefault get a string from Onion. if the value is not exists or if tha value is not
 // string, return the default
-func (o *Onion) GetString(key string, def string) string {
+func (o *Onion) GetStringDefault(key string, def string) string {
 	v, ok := o.Get(key)
 	if !ok {
 		return def
@@ -212,9 +222,14 @@ func (o *Onion) GetString(key string, def string) string {
 	return s
 }
 
-// GetBool return bool value from Onion. if the value is not exists or if tha value is not
+// GetString is for getting an string from conig. if the key is not
+func (o *Onion) GetString(key string) string {
+	return o.GetStringDefault(key, "")
+}
+
+// GetBoolDefault return bool value from Onion. if the value is not exists or if tha value is not
 // boolean, return the default
-func (o *Onion) GetBool(key string, def bool) bool {
+func (o *Onion) GetBoolDefault(key string, def bool) bool {
 	v, ok := o.Get(key)
 	if !ok {
 		return def
@@ -234,6 +249,11 @@ func (o *Onion) GetBool(key string, def bool) bool {
 	default:
 		return def
 	}
+}
+
+// GetBool is used to get a boolean value fro config, with false as default
+func (o *Onion) GetBool(key string) bool {
+	return o.GetBoolDefault(key, false)
 }
 
 func (o *Onion) getSlice(key string) (interface{}, bool) {
@@ -274,7 +294,9 @@ func (o *Onion) GetStringSlice(key string) []string {
 	return nil
 }
 
-// GetStruct fill an structure base on the config nested set
+// GetStruct fill an structure base on the config nested set, this function use reflection, and its not
+// good (in my opinion) for frequent call.
+// but its best if you need the config to loaded in structure and use that structure after that.
 func (o *Onion) GetStruct(prefix string, s interface{}) {
 	iterateConfig(o, s, prefix)
 }
@@ -307,19 +329,19 @@ func iterateConfig(o *Onion, c interface{}, op string) {
 			switch v.Field(i).Kind() {
 			case reflect.Bool:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetBool(o.GetBool(prefix+name, v.Field(i).Bool()))
+					v.Field(i).SetBool(o.GetBoolDefault(prefix+name, v.Field(i).Bool()))
 				}
 			case reflect.Int:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetInt(o.GetInt64(prefix+name, v.Field(i).Int()))
+					v.Field(i).SetInt(o.GetInt64Default(prefix+name, v.Field(i).Int()))
 				}
 			case reflect.Int64:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetInt(o.GetInt64(prefix+name, v.Field(i).Int()))
+					v.Field(i).SetInt(o.GetInt64Default(prefix+name, v.Field(i).Int()))
 				}
 			case reflect.String:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetString(o.GetString(prefix+name, v.Field(i).String()))
+					v.Field(i).SetString(o.GetStringDefault(prefix+name, v.Field(i).String()))
 				}
 			case reflect.Struct:
 				iterateConfig(o, v.Field(i).Addr().Interface(), prefix+name)

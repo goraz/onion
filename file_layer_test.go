@@ -43,10 +43,10 @@ func TestFileLayer(t *testing.T) {
 			o := New()
 			err := o.AddLayer(fl)
 			So(err, ShouldBeNil)
-			So(o.GetString("str", ""), ShouldEqual, "string_data")
-			So(o.GetString("nested.key1", ""), ShouldEqual, "string")
-			So(o.GetInt("nested.key2", 0), ShouldEqual, 100)
-			So(o.GetBool("bool", false), ShouldBeTrue)
+			So(o.GetStringDefault("str", ""), ShouldEqual, "string_data")
+			So(o.GetStringDefault("nested.key1", ""), ShouldEqual, "string")
+			So(o.GetIntDefault("nested.key2", 0), ShouldEqual, 100)
+			So(o.GetBoolDefault("bool", false), ShouldBeTrue)
 			So(reflect.DeepEqual(o.GetStringSlice("slicestr"), []string{"a", "b", "c"}), ShouldBeTrue)
 
 			a := New() // Just for test load again
