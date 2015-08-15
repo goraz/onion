@@ -35,6 +35,8 @@ type structExample struct {
 	nested `onion:"nested"`
 
 	Another nested `onion:"nested"`
+
+	Ignored string `onion:"-"`
 }
 
 func (lm layerMock) Load() (map[string]interface{}, error) {
@@ -71,6 +73,7 @@ func TestOnion(t *testing.T) {
 		lm.data["slice2"] = []interface{}{"a", "b", "c"}
 		lm.data["slice3"] = []interface{}{"a", "b", true}
 		lm.data["slice4"] = []int{1, 2, 3}
+		lm.data["ignored"] = "ignore me"
 
 		o := New()
 		So(o.AddLayer(lm), ShouldBeNil)
@@ -152,6 +155,7 @@ func TestOnion(t *testing.T) {
 		})
 
 		Convey("delegate to structure", func() {
+			So(o.GetString("ignored"), ShouldEqual, "ignore me")
 			s := structExample{}
 			o.GetStruct("", &s)
 			ex := structExample{
@@ -174,6 +178,7 @@ func TestOnion(t *testing.T) {
 					N1: 99,
 					N2: true,
 				},
+				Ignored: "",
 			}
 			So(reflect.DeepEqual(s, ex), ShouldBeTrue)
 			var tmp []string

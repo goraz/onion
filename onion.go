@@ -322,6 +322,10 @@ func iterateConfig(o *Onion, c interface{}, op string) {
 		p := typ.Field(i)
 		if !p.Anonymous {
 			name := p.Tag.Get("onion")
+			if name == "-" {
+				// Ignore this key.
+				continue
+			}
 			if name == "" {
 				name = strings.ToLower(p.Name)
 			}
