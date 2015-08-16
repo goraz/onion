@@ -10,7 +10,7 @@ import (
 
 var loaders map[string]FileLoader
 
-// FileLoader is an interfae to handle load config from a file
+// FileLoader is an interface to handle load config from a file
 type FileLoader interface {
 	// Must return the list of supported ext for this loader interface
 	SupportedEXT() []string
@@ -48,7 +48,8 @@ func (fl *fileLayer) Load() (map[string]interface{}, error) {
 	return fl.data, err
 }
 
-// RegisterLoader must be called to register a type loaer
+// RegisterLoader must be called to register a type loader, this function is only available with
+// file and folder loaders.
 func RegisterLoader(l FileLoader) {
 	for _, ext := range l.SupportedEXT() {
 		loaders[strings.ToLower(ext)] = l

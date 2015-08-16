@@ -103,9 +103,9 @@ o.GetStruct("prefix", &c)
 ```
 the the `c.Key1` is equal to `o.GetStringDefault("prefix.key1", c.Key1)` , note that the
 value before calling this function is used as default value, when the type is
-not matched or the value is not exists, the the default is returned For changing
-the key name, struct tag is supported. for example in the above example `c.Key3` is
-equal to `o.GetBool("prefix.boolkey", c.Key3)`
+not matched or the value is not exists, the the default is returned.
+For changing the key name, struct tag is supported. for example in the above example
+`c.Key3` is equal to `o.GetBoolDefault("prefix.boolkey", c.Key3)`
 
 Also nested struct (and embeded ones) are supported too.
 
@@ -116,7 +116,8 @@ Also nested struct (and embeded ones) are supported too.
 ```go
 func RegisterLoader(l FileLoader)
 ```
-RegisterLoader must be called to register a type loaer
+RegisterLoader must be called to register a type loader, this function is only
+available with file and folder loaders.
 
 #### type DefaultLayer
 
@@ -155,7 +156,7 @@ type FileLoader interface {
 }
 ```
 
-FileLoader is an interfae to handle load config from a file
+FileLoader is an interface to handle load config from a file
 
 #### type Layer
 
