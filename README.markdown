@@ -20,10 +20,12 @@ layer type is supported.
 
 This layer is special layer to set default for configs. usage is simple :
 
-    l := onion.NewDefaultLayer()
-    l.SetDefault("my.daughter.name", "bita")
+```go
+l := onion.NewDefaultLayer()
+l.SetDefault("my.daughter.name", "bita")
+```
 
-This layer must be addedbefore all other layer, and defaults must be added
+This layer must be added before all other layer, and defaults must be added
 before adding it to onion
 
 
@@ -99,11 +101,11 @@ o := onion.New()
 c := MyStruct{}
 o.GetStruct("prefix", &c)
 ```
-the the c.Key1 is equal to o.GetString("prefix.key1", c.Key1) , note that the
+the the `c.Key1` is equal to `o.GetStringDefault("prefix.key1", c.Key1)` , note that the
 value before calling this function is used as default value, when the type is
 not matched or the value is not exists, the the default is returned For changing
-the key name, struct tag is supported. for example in the above example c.Key3 i
-equal to o.GetBool("prefix.boolkey", c.Key3)
+the key name, struct tag is supported. for example in the above example `c.Key3` is
+equal to `o.GetBool("prefix.boolkey", c.Key3)`
 
 Also nested struct (and embeded ones) are supported too.
 
