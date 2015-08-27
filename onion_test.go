@@ -5,6 +5,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -75,6 +76,12 @@ func TestOnion(t *testing.T) {
 		lm.data["slice4"] = []int{1, 2, 3}
 		lm.data["ignored"] = "ignore me"
 
+		lm.data["durstring"] = "1h2m3s"
+		lm.data["durstringinvalid"] = "ertyuiop"
+		lm.data["durint"] = 100000000
+		lm.data["durint64"] = int64(100000000)
+		lm.data["booldur"] = true
+
 		o := New()
 		So(o.AddLayer(lm), ShouldBeNil)
 		Convey("Get direct variable", func() {
@@ -90,6 +97,13 @@ func TestOnion(t *testing.T) {
 			So(o.GetInt64("key4"), ShouldEqual, 20)
 			So(o.GetInt64("key5"), ShouldEqual, 200)
 			So(o.GetInt64("key6"), ShouldEqual, 100)
+			d, _ := time.ParseDuration("1h2m3s")
+			So(o.GetDuration("durstring"), ShouldEqual, d)
+			So(o.GetDuration("durstringinvalid"), ShouldEqual, 0)
+			So(o.GetDuration("not-set-value"), ShouldEqual, 0)
+			So(o.GetDuration("durint"), ShouldEqual, time.Duration(100000000))
+			So(o.GetDuration("durint64"), ShouldEqual, time.Duration(100000000))
+			So(o.GetDuration("booldur"), ShouldEqual, 0)
 		})
 
 		Convey("Get default value", func() {

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Layer is an interface to handle the load phase.
@@ -254,6 +255,36 @@ func (o *Onion) GetBoolDefault(key string, def bool) bool {
 // GetBool is used to get a boolean value fro config, with false as default
 func (o *Onion) GetBool(key string) bool {
 	return o.GetBoolDefault(key, false)
+}
+
+// GetDurationDefault is a function to get duration from config. it support both
+// string duration (like 1h3m2s) and integer duration
+func (o *Onion) GetDurationDefault(key string, def time.Duration) time.Duration {
+	v, ok := o.Get(key)
+	if !ok {
+		return def
+	}
+
+	switch v.(type) {
+	case string:
+		d, err := time.ParseDuration(v.(string))
+		if err != nil {
+			return def
+		}
+		return d
+	case int:
+		return time.Duration(v.(int))
+	case int64:
+		return time.Duration(v.(int64))
+	default:
+		return def
+	}
+}
+
+// GetDuration is for getting duration from config, it cast both int and string
+// to duration
+func (o *Onion) GetDuration(key string) time.Duration {
+	return o.GetDurationDefault(key, 0)
 }
 
 func (o *Onion) getSlice(key string) (interface{}, bool) {
