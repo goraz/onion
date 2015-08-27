@@ -96,11 +96,11 @@ func searchStringMap(path []string, m map[string]interface{}) (interface{}, bool
 		return v, true
 	}
 
-	switch v.(type) {
+	switch m := v.(type) {
 	case map[string]interface{}:
-		return searchStringMap(path[1:], v.(map[string]interface{}))
+		return searchStringMap(path[1:], m)
 	case map[interface{}]interface{}:
-		return searchInterfaceMap(path[1:], v.(map[interface{}]interface{}))
+		return searchInterfaceMap(path[1:], m)
 	}
 	return nil, false
 }
@@ -115,11 +115,11 @@ func searchInterfaceMap(path []string, m map[interface{}]interface{}) (interface
 		return v, true
 	}
 
-	switch v.(type) {
+	switch m := v.(type) {
 	case map[string]interface{}:
-		return searchStringMap(path[1:], v.(map[string]interface{}))
+		return searchStringMap(path[1:], m)
 	case map[interface{}]interface{}:
-		return searchInterfaceMap(path[1:], v.(map[interface{}]interface{}))
+		return searchInterfaceMap(path[1:], m)
 	}
 	return nil, false
 }
@@ -127,11 +127,11 @@ func searchInterfaceMap(path []string, m map[interface{}]interface{}) (interface
 func lowerStringMap(m map[string]interface{}) map[string]interface{} {
 	res := make(map[string]interface{})
 	for k := range m {
-		switch m[k].(type) {
+		switch nm := m[k].(type) {
 		case map[string]interface{}:
-			res[strings.ToLower(k)] = lowerStringMap(m[k].(map[string]interface{}))
+			res[strings.ToLower(k)] = lowerStringMap(nm)
 		case map[interface{}]interface{}:
-			res[strings.ToLower(k)] = lowerInterfaceMap(m[k].(map[interface{}]interface{}))
+			res[strings.ToLower(k)] = lowerInterfaceMap(nm)
 		default:
 			res[strings.ToLower(k)] = m[k]
 		}
@@ -145,11 +145,11 @@ func lowerInterfaceMap(m map[interface{}]interface{}) map[interface{}]interface{
 	for k := range m {
 		switch k.(type) {
 		case string:
-			switch m[k].(type) {
+			switch nm := m[k].(type) {
 			case map[string]interface{}:
-				res[strings.ToLower(k.(string))] = lowerStringMap(m[k].(map[string]interface{}))
+				res[strings.ToLower(k.(string))] = lowerStringMap(nm)
 			case map[interface{}]interface{}:
-				res[strings.ToLower(k.(string))] = lowerInterfaceMap(m[k].(map[interface{}]interface{}))
+				res[strings.ToLower(k.(string))] = lowerInterfaceMap(nm)
 			default:
 				res[strings.ToLower(k.(string))] = m[k]
 			}
@@ -180,26 +180,27 @@ func (o *Onion) GetInt64Default(key string, def int64) int64 {
 		return def
 	}
 
-	switch v.(type) {
+	switch nv := v.(type) {
 	case string:
 		// Env is not typed and always is String, so try to convert it to int
 		// if possible
-		i, err := strconv.ParseInt(v.(string), 10, 64)
+		i, err := strconv.ParseInt(nv, 10, 64)
 		if err != nil {
 			return def
 		}
 		return i
 	case int:
-		return int64(v.(int))
+		return int64(nv)
 	case int64:
-		return v.(int64)
+		return nv
 	case float32:
-		return int64(v.(float32))
+		return int64(nv)
 	case float64:
-		return int64(v.(float64))
+		return int64(nv)
 	default:
 		return def
 	}
+
 }
 
 // GetInt64 return the int64 value from config, if its not there, return zero
@@ -236,17 +237,17 @@ func (o *Onion) GetBoolDefault(key string, def bool) bool {
 		return def
 	}
 
-	switch v.(type) {
+	switch nv := v.(type) {
 	case string:
 		// Env is not typed and always is String, so try to convert it to int
 		// if possible
-		i, err := strconv.ParseBool(v.(string))
+		i, err := strconv.ParseBool(nv)
 		if err != nil {
 			return def
 		}
 		return i
 	case bool:
-		return v.(bool)
+		return nv
 	default:
 		return def
 	}
@@ -265,19 +266,19 @@ func (o *Onion) GetDurationDefault(key string, def time.Duration) time.Duration 
 		return def
 	}
 
-	switch v.(type) {
+	switch nv := v.(type) {
 	case string:
-		d, err := time.ParseDuration(v.(string))
+		d, err := time.ParseDuration(nv)
 		if err != nil {
 			return def
 		}
 		return d
 	case int:
-		return time.Duration(v.(int))
+		return time.Duration(nv)
 	case int64:
-		return time.Duration(v.(int64))
+		return time.Duration(nv)
 	case time.Duration:
-		return v.(time.Duration)
+		return nv
 	default:
 		return def
 	}
@@ -310,14 +311,13 @@ func (o *Onion) GetStringSlice(key string) []string {
 		return nil
 	}
 
-	switch v.(type) {
+	switch nv := v.(type) {
 	case []string:
-		return v.([]string)
+		return nv
 	case []interface{}:
-		vi := v.([]interface{})
-		res := make([]string, len(vi))
-		for i := range vi {
-			if res[i], ok = vi[i].(string); !ok {
+		res := make([]string, len(nv))
+		for i := range nv {
+			if res[i], ok = nv[i].(string); !ok {
 				return nil
 			}
 		}

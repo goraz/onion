@@ -32,11 +32,11 @@ func stringSetDefault(k []string, v interface{}, scope map[string]interface{}) e
 	t, ok := scope[k[0]]
 	if ok {
 		// the key is already there. check if its another map?
-		switch t.(type) {
+		switch m := t.(type) {
 		case map[string]interface{}:
-			return stringSetDefault(k[1:], v, scope[k[0]].(map[string]interface{}))
+			return stringSetDefault(k[1:], v, m)
 		case map[interface{}]interface{}:
-			return interfaceSetDefault(k[1:], v, scope[k[0]].(map[interface{}]interface{}))
+			return interfaceSetDefault(k[1:], v, m)
 		default:
 			return errors.New("the key is not a map")
 		}
@@ -55,11 +55,11 @@ func interfaceSetDefault(k []string, v interface{}, scope map[interface{}]interf
 	t, ok := scope[k[0]]
 	if ok {
 		// the key is already there. check if its another map?
-		switch t.(type) {
+		switch m := t.(type) {
 		case map[string]interface{}:
-			return stringSetDefault(k[1:], v, scope[k[0]].(map[string]interface{}))
+			return stringSetDefault(k[1:], v, m)
 		case map[interface{}]interface{}:
-			return interfaceSetDefault(k[1:], v, scope[k[0]].(map[interface{}]interface{}))
+			return interfaceSetDefault(k[1:], v, m)
 		default:
 			return errors.New("the key is not a map")
 		}
