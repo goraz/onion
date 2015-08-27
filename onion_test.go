@@ -76,6 +76,7 @@ func TestOnion(t *testing.T) {
 		lm.data["slice4"] = []int{1, 2, 3}
 		lm.data["ignored"] = "ignore me"
 
+		lm.data["dur"] = time.Minute
 		lm.data["durstring"] = "1h2m3s"
 		lm.data["durstringinvalid"] = "ertyuiop"
 		lm.data["durint"] = 100000000
@@ -104,6 +105,7 @@ func TestOnion(t *testing.T) {
 			So(o.GetDuration("durint"), ShouldEqual, time.Duration(100000000))
 			So(o.GetDuration("durint64"), ShouldEqual, time.Duration(100000000))
 			So(o.GetDuration("booldur"), ShouldEqual, 0)
+			So(o.GetDuration("dur"), ShouldEqual, time.Minute)
 		})
 
 		Convey("Get default value", func() {
