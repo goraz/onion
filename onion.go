@@ -276,6 +276,8 @@ func (o *Onion) GetDurationDefault(key string, def time.Duration) time.Duration 
 		return time.Duration(v.(int))
 	case int64:
 		return time.Duration(v.(int64))
+	case time.Duration:
+		return v.(time.Duration)
 	default:
 		return def
 	}
