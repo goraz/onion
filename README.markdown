@@ -278,6 +278,34 @@ func (o *Onion) GetIntDefault(key string, def int) int
 GetIntDefault return an int value from Onion, if the value is not exists or its
 not an integer , default is returned
 
+```go
+func (o *Onion) GetFloat32(key string) float32
+```
+GetFloat32 return an float32 value, if the value is not there, then it return zero value
+
+#### func (*Onion) GetFloat64
+
+```go
+func (o *Onion) GetFloat64(key string) float64
+```
+GetFloat64 return the float64 value from config, if its not there, return zero
+
+#### func (*Onion) GetFloat64Default
+
+```go
+func (o *Onion) GetFloat64Default(key string, def float64) float64
+```
+GetFloat64Default return an float64 value from Onion, if the value is not exists or
+if the value is not float64 then return the default
+
+#### func (*Onion) GetFloat32Default
+
+```go
+func (o *Onion) GetFloat32Default(key string, def float32) float32
+```
+GetFloat32Default return an float32 value from Onion, if the value is not exists or its
+not a float32, default is returned
+
 #### func (*Onion) GetString
 
 ```go
