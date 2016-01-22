@@ -55,7 +55,7 @@ func getMap(prefix string, s ...interface{}) map[string]interface{} {
 func TestOnion(t *testing.T) {
 	Convey("Onion basic functionality", t, func() {
 		lm := &layerMock{}
-		lm.data = getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200), int64(100))
+		lm.data = getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200.123), int64(100))
 		lm.data["nested"] = getMap("n", "a", 99, true)
 		t1 := make(map[interface{}]interface{})
 		t1["str1"] = 1
@@ -91,7 +91,9 @@ func TestOnion(t *testing.T) {
 			So(o.GetString("key2"), ShouldEqual, "answer")
 			So(o.GetBool("key3"), ShouldBeTrue)
 			So(o.GetInt("key4"), ShouldEqual, 20)
+			So(o.GetFloat32("key4"), ShouldEqual, 20.88)
 			So(o.GetInt("key5"), ShouldEqual, 200)
+			So(o.GetFloat64("key5"), ShouldEqual, 200.123)
 			So(o.GetInt("key6"), ShouldEqual, 100)
 
 			So(o.GetInt64("key0"), ShouldEqual, 42)
@@ -123,6 +125,12 @@ func TestOnion(t *testing.T) {
 
 			So(o.GetInt64Default("", 0), ShouldEqual, 0) // Empty key
 			So(o.GetInt64Default("key3", 10000), ShouldEqual, 10000)
+
+			So(o.GetFloat32Default("", 0), ShouldEqual, 0) // Empty key
+			So(o.GetFloat32Default("key3", 10000), ShouldEqual, 10000)
+
+			So(o.GetFloat64Default("", 0.123), ShouldEqual, 0.123) // Empty key
+			So(o.GetFloat64Default("key3", 10000.123), ShouldEqual, 10000.123)
 		})
 
 		Convey("Get nested variable", func() {

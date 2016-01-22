@@ -208,6 +208,53 @@ func (o *Onion) GetInt64(key string) int64 {
 	return o.GetInt64Default(key, 0)
 }
 
+// GetFloat32Default return an float32 value from Onion, if the value is not exists or its not a
+// float32, default is returned
+func (o *Onion) GetFloat32Default(key string, def float32) float32 {
+	return float32(o.GetFloat64Default(key, float64(def)))
+}
+
+// GetFloat32 return an float32 value, if the value is not there, then it returns zero value
+func (o *Onion) GetFloat32(key string) float32 {
+	return o.GetFloat32Default(key, 0)
+}
+
+// GetFloat64Default return an float64 value from Onion, if the value is not exists or if the value is not
+// float64 then return the default
+func (o *Onion) GetFloat64Default(key string, def float64) float64 {
+	v, ok := o.Get(key)
+	if !ok {
+		return def
+	}
+
+	switch nv := v.(type) {
+	case string:
+		// Env is not typed and always is String, so try to convert it to int
+		// if possible
+		f, err := strconv.ParseFloat(nv, 64)
+		if err != nil {
+			return def
+		}
+		return f
+	case int:
+		return float64(nv)
+	case int64:
+		return float64(nv)
+	case float32:
+		return float64(nv)
+	case float64:
+		return nv
+	default:
+		return def
+	}
+
+}
+
+// GetFloat64 return the float64 value from config, if its not there, return zero
+func (o *Onion) GetFloat64(key string) float64 {
+	return o.GetFloat64Default(key, 0)
+}
+
 // GetStringDefault get a string from Onion. if the value is not exists or if tha value is not
 // string, return the default
 func (o *Onion) GetStringDefault(key string, def string) string {
