@@ -378,16 +378,15 @@ func (o *Onion) GetStringSlice(key string) []string {
 // good (in my opinion) for frequent call.
 // but its best if you need the config to loaded in structure and use that structure after that.
 func (o *Onion) GetStruct(prefix string, s interface{}) {
-	iterateConfig(o, s, prefix)
+	iterateConfig(o, reflect.ValueOf(s), prefix)
 }
 
-func iterateConfig(o *Onion, c interface{}, op string) {
+func iterateConfig(o *Onion, v reflect.Value, op string) {
 	prefix := op
 	if prefix != "" {
 		prefix = prefix + o.GetDelimiter()
 	}
-	typ := reflect.TypeOf(c)
-	v := reflect.ValueOf(c)
+	typ := v.Type()
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 		v = v.Elem()
@@ -428,14 +427,14 @@ func iterateConfig(o *Onion, c interface{}, op string) {
 					v.Field(i).SetString(o.GetStringDefault(prefix+name, v.Field(i).String()))
 				}
 			case reflect.Struct:
-				iterateConfig(o, v.Field(i).Addr().Interface(), prefix+name)
+				iterateConfig(o, v.Field(i).Addr(), prefix+name)
 			}
 		} else { // Anonymus structues
 			name := p.Tag.Get("onion")
 			if name == "" {
 				prefix = op // Reset the prefix to remove the delimiter
 			}
-			iterateConfig(o, v.Field(i).Addr().Interface(), prefix+name)
+			iterateConfig(o, v.Field(i).Addr(), prefix+name)
 		}
 	}
 
