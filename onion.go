@@ -8,47 +8,85 @@ import (
 	"time"
 )
 
+const DefaultDelimiter = "."
+
+var lock = &sync.RWMutex{}
+
 // Layer is an interface to handle the load phase.
 type Layer interface {
-	// Load a layer into the Onion
-	Load() (map[string]interface{}, error)
+	// IsLazy return true if the loader is lazy. if this return false, then
+	// the Load method is called once.
+	IsLazy() bool
+	// Load a layer into the Onion. if this is lazy, then the call is only done in the
+	// registration, if not, the load method with empty parameter is used to initialize
+	// the loader
+	// multiple parameter is for scope. for example database.password means two parameter
+	Load(string, ...string) (map[string]interface{}, error)
 }
 
-type layerList []Layer
+type singleLayer struct {
+	layer Layer
+	lazy  bool
+	data  map[string]interface{}
+}
+
+type layerList []singleLayer
 
 // Onion is a layer base configuration system
 type Onion struct {
-	lock      sync.RWMutex
 	delimiter string
 	ll        layerList
-	// A simple cache system, should have a way to refresh
-	layers map[Layer]map[string]interface{}
+}
+
+func (sl singleLayer) getData(d string, path ...string) (map[string]interface{}, error) {
+	if sl.lazy {
+		return sl.layer.Load(d, path...)
+	} else {
+		return sl.data, nil
+	}
 }
 
 // AddLayer add a new layer to the end of config layers. last layer is loaded after all other
 // layer
 func (o *Onion) AddLayer(l Layer) error {
-	o.lock.Lock()
-	defer o.lock.Unlock()
+	lock.Lock()
+	defer lock.Unlock()
 
-	data, err := l.Load()
-	if err != nil {
-		return err
+	if l.IsLazy() {
+		_, err := l.Load(o.GetDelimiter()) // this is for initialization
+		if err != nil {
+			return err
+		}
+		o.ll = append(
+			o.ll,
+			singleLayer{
+				layer: l,
+				lazy:  true,
+				data:  nil,
+			},
+		)
+	} else {
+		data, err := l.Load(o.GetDelimiter())
+		if err != nil {
+			return err
+		}
+
+		o.ll = append(
+			o.ll,
+			singleLayer{
+				layer: l,
+				lazy:  false,
+				data:  lowerStringMap(data),
+			},
+		)
 	}
-
-	o.ll = append(o.ll, l)
-	if o.layers == nil {
-		o.layers = make(map[Layer]map[string]interface{})
-	}
-	o.layers[l] = lowerStringMap(data)
-
 	return nil
 }
 
 // GetDelimiter return the delimiter for nested key
 func (o *Onion) GetDelimiter() string {
 	if o.delimiter == "" {
-		o.delimiter = "."
+		o.delimiter = DefaultDelimiter
 	}
 
 	return o.delimiter
@@ -61,16 +99,12 @@ func (o *Onion) SetDelimiter(d string) {
 
 // Get try to get the key from config layers
 func (o *Onion) Get(key string) (interface{}, bool) {
-	o.lock.RLock()
-	defer o.lock.RUnlock()
-
-	if o.layers == nil {
-		o.layers = make(map[Layer]map[string]interface{})
-	}
+	lock.RLock()
+	defer lock.RUnlock()
 
 	path := strings.Split(strings.ToLower(key), o.GetDelimiter())
 	for i := len(o.ll) - 1; i >= 0; i-- {
-		l := o.layers[o.ll[i]]
+		l, _ := o.ll[i].getData(o.GetDelimiter(), path...)
 		res, found := searchStringMap(path, l)
 		if found {
 			return res, found
@@ -80,12 +114,12 @@ func (o *Onion) Get(key string) (interface{}, bool) {
 	return nil, false
 }
 
-// The folowing two function are identical. but converting between map[string] and
-// map[interface{}] is not easy, and there is no _Generic_ , so I decide to create
-// two almost identical function instead of writing a convertor each time.
+// The following two function are identical. but converting between map[string] and
+// map[interface{}] is not easy, and there is no _Generic_ way to do it, so I decide to create
+// two almost identical function instead of writing a converter each time.
 //
 // Some of the loaders like yaml, load inner keys in map[interface{}]interface{}
-// some othr like json do it in map[string]interface{} so we should suppport both
+// some other like json do it in map[string]interface{} so we should support both
 func searchStringMap(path []string, m map[string]interface{}) (interface{}, bool) {
 	v, ok := m[path[0]]
 	if !ok {
@@ -374,77 +408,9 @@ func (o *Onion) GetStringSlice(key string) []string {
 	return nil
 }
 
-// GetStruct fill an structure base on the config nested set, this function use reflection, and its not
-// good (in my opinion) for frequent call.
-// but its best if you need the config to loaded in structure and use that structure after that.
-func (o *Onion) GetStruct(prefix string, s interface{}) {
-	iterateConfig(o, reflect.ValueOf(s), prefix)
-}
-
-func iterateConfig(o *Onion, v reflect.Value, op string) {
-	prefix := op
-	if prefix != "" {
-		prefix = prefix + o.GetDelimiter()
-	}
-	typ := v.Type()
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-		v = v.Elem()
-	}
-	// Only structs are supported
-	if typ.Kind() != reflect.Struct {
-		return
-	}
-
-	// loop through the struct's fields and set the map
-	for i := 0; i < typ.NumField(); i++ {
-		p := typ.Field(i)
-		if !p.Anonymous {
-			name := p.Tag.Get("onion")
-			if name == "-" {
-				// Ignore this key.
-				continue
-			}
-			if name == "" {
-				name = strings.ToLower(p.Name)
-			}
-
-			switch v.Field(i).Kind() {
-			case reflect.Bool:
-				if v.Field(i).CanSet() {
-					v.Field(i).SetBool(o.GetBoolDefault(prefix+name, v.Field(i).Bool()))
-				}
-			case reflect.Int:
-				if v.Field(i).CanSet() {
-					v.Field(i).SetInt(o.GetInt64Default(prefix+name, v.Field(i).Int()))
-				}
-			case reflect.Int64:
-				if v.Field(i).CanSet() {
-					v.Field(i).SetInt(o.GetInt64Default(prefix+name, v.Field(i).Int()))
-				}
-			case reflect.String:
-				if v.Field(i).CanSet() {
-					v.Field(i).SetString(o.GetStringDefault(prefix+name, v.Field(i).String()))
-				}
-			case reflect.Struct:
-				iterateConfig(o, v.Field(i).Addr(), prefix+name)
-			}
-		} else { // Anonymus structues
-			name := p.Tag.Get("onion")
-			if name == "" {
-				prefix = op // Reset the prefix to remove the delimiter
-			}
-			iterateConfig(o, v.Field(i).Addr(), prefix+name)
-		}
-	}
-
-}
-
 // New return a new Onion
 func New() *Onion {
 	return &Onion{
-		lock:      sync.RWMutex{},
-		delimiter: ".",
-		layers:    make(map[Layer]map[string]interface{}),
+		delimiter: DefaultDelimiter,
 	}
 }

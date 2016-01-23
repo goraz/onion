@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"strings"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -21,9 +23,11 @@ type anonNested struct {
 }
 
 type nested struct {
-	N0 string
-	N1 int
-	N2 bool
+	N0  string
+	N1  int
+	N2  bool
+	F32 float32
+	F64 float64
 }
 
 type structExample struct {
@@ -40,8 +44,37 @@ type structExample struct {
 	Ignored string `onion:"-"`
 }
 
-func (lm layerMock) Load() (map[string]interface{}, error) {
+type layerLazyMock struct {
+	fail bool
+}
+
+func (lm layerMock) IsLazy() bool {
+	return false
+}
+
+func (lm layerMock) Load(string, ...string) (map[string]interface{}, error) {
 	return lm.data, nil
+}
+
+func (lm layerLazyMock) IsLazy() bool {
+	return true
+}
+
+func (lm layerLazyMock) Load(d string, p ...string) (map[string]interface{}, error) {
+	if len(p) == 0 {
+		if lm.fail {
+			return nil, fmt.Errorf("err")
+		}
+		return nil, nil
+	}
+	return createNestedMap(strings.Join(p, "-"), p...).(map[string]interface{}), nil
+}
+
+func createNestedMap(v interface{}, p ...string) interface{} {
+	if len(p) == 0 {
+		return v
+	}
+	return map[string]interface{}{p[0]: createNestedMap(v, p[1:]...)}
 }
 
 func getMap(prefix string, s ...interface{}) map[string]interface{} {
@@ -59,6 +92,7 @@ func TestOnion(t *testing.T) {
 		lm.data["nested"] = getMap("n", "a", 99, true)
 		t1 := make(map[interface{}]interface{})
 		t1["str1"] = 1
+		t1["int64"] = int64(64)
 		t1["str2"] = "hi"
 		t1["other"] = struct{}{}
 		t1["what"] = getMap("n", "a")
@@ -88,6 +122,7 @@ func TestOnion(t *testing.T) {
 		Convey("Get direct variable", func() {
 			So(o.GetInt("key0"), ShouldEqual, 42)
 			So(o.GetString("key1"), ShouldEqual, "universe")
+			So(o.GetFloat64("key1"), ShouldEqual, 0)
 			So(o.GetString("key2"), ShouldEqual, "answer")
 			So(o.GetBool("key3"), ShouldBeTrue)
 			So(o.GetInt("key4"), ShouldEqual, 20)
@@ -97,6 +132,7 @@ func TestOnion(t *testing.T) {
 			So(o.GetInt("key6"), ShouldEqual, 100)
 
 			So(o.GetInt64("key0"), ShouldEqual, 42)
+			So(o.GetFloat64("key0"), ShouldEqual, 42.0)
 			So(o.GetInt64("key4"), ShouldEqual, 20)
 			So(o.GetInt64("key5"), ShouldEqual, 200)
 			So(o.GetInt64("key6"), ShouldEqual, 100)
@@ -140,6 +176,7 @@ func TestOnion(t *testing.T) {
 			So(o.GetBoolDefault("nested.n2", false), ShouldEqual, true)
 
 			So(o.GetIntDefault("yes.str1", 0), ShouldEqual, 1)
+			So(o.GetFloat32Default("yes.int64", 0), ShouldEqual, 64)
 			So(o.GetStringDefault("yes.str2", ""), ShouldEqual, "hi")
 
 			So(o.GetStringDefault("yes.nested.str2", ""), ShouldEqual, "hi")
@@ -237,6 +274,7 @@ func TestOnion(t *testing.T) {
 		So(o.GetBoolDefault("test1", true), ShouldBeFalse)
 		o.AddLayer(lm3) // Special case in ENV loader
 		So(o.GetInt64Default("test0", 0), ShouldEqual, 3)
+		So(o.GetFloat64Default("test0", 0), ShouldEqual, 3.0)
 		So(o.GetBoolDefault("test1", false), ShouldBeTrue)
 		So(o.GetBoolDefault("test2", false), ShouldBeFalse)
 	})
@@ -249,6 +287,14 @@ func TestOnion(t *testing.T) {
 		o1.AddLayer(lm)
 		So(o1.GetIntDefault("test0", 0), ShouldEqual, 1)
 	})
+
+	Convey("test lazy loader", t, func() {
+		o := New()
+		So(o.AddLayer(layerLazyMock{}), ShouldBeNil)
+		So(o.GetString("a.b.c.d"), ShouldEqual, "a-b-c-d")
+		So(o.AddLayer(layerLazyMock{fail: true}), ShouldNotBeNil)
+	})
+
 }
 
 func BenchmarkOion(b *testing.B) {

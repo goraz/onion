@@ -5,7 +5,7 @@
 [![GoDoc](https://godoc.org/github.com/fzerorubigd/onion?status.svg)](https://godoc.org/github.com/fzerorubigd/onion)
 
 --
-    import "github.com/fzerorubigd/onion"
+    import "gopkg.in/fzerorubigd/onion.v2"
 
 Package onion is a layer based, pluggable config manager for golang.
 

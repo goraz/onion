@@ -12,7 +12,7 @@ var loaders map[string]FileLoader
 
 // FileLoader is an interface to handle load config from a file
 type FileLoader interface {
-	// Must return the list of supported ext for this loader interface
+	// SupportedEXT Must return the list of supported ext for this loader interface
 	SupportedEXT() []string
 	// Convert is for translating the file data into config structure.
 	Convert(io.Reader) (map[string]interface{}, error)
@@ -24,9 +24,14 @@ type fileLayer struct {
 	data   map[string]interface{}
 }
 
+// IsLazy for file layer, is always return true
+func (fl *fileLayer) IsLazy() bool {
+	return false
+}
+
 // Load a file. also save it's data so the next time it can simply return it
 // may be I should remove cache?
-func (fl *fileLayer) Load() (map[string]interface{}, error) {
+func (fl *fileLayer) Load(string, ...string) (map[string]interface{}, error) {
 	if fl.loaded {
 		return fl.data, nil
 	}
@@ -60,7 +65,11 @@ func RegisterLoader(l FileLoader) {
 // is the key for loader to load a correct loader. if you want to scan a directory,
 // use the folder loader.
 func NewFileLayer(file string) Layer {
-	return &fileLayer{file, false, nil}
+	return &fileLayer{
+		file:   file,
+		loaded: false,
+		data:   nil,
+	}
 }
 
 func init() {

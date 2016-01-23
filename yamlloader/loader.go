@@ -15,7 +15,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/fzerorubigd/onion"
+	"gopkg.in/fzerorubigd/onion.v2"
 )
 
 type yamlLoader struct {

@@ -69,7 +69,11 @@ func interfaceSetDefault(k []string, v interface{}, scope map[interface{}]interf
 	return stringSetDefault(k[1:], v, scope[k[0]].(map[string]interface{}))
 }
 
-func (dl *defaultLayer) Load() (map[string]interface{}, error) {
+func (dl *defaultLayer) IsLazy() bool {
+	return false
+}
+
+func (dl *defaultLayer) Load(string, ...string) (map[string]interface{}, error) {
 	return dl.data, nil
 }
 

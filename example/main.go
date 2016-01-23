@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fzerorubigd/onion"
+	"gopkg.in/fzerorubigd/onion.v2"
 )
 
 func pwd() string {

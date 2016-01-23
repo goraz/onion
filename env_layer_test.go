@@ -20,7 +20,7 @@ func TestEnvLayer(t *testing.T) {
 		Convey("Check if there is anything loaded", func() {
 			el := NewEnvLayer("TEST1", "test2", "Test3")
 
-			data, err := el.Load()
+			data, err := el.Load(DefaultDelimiter)
 			So(err, ShouldBeNil)
 			So(len(data), ShouldEqual, 0)
 		})
@@ -28,7 +28,7 @@ func TestEnvLayer(t *testing.T) {
 		Convey("Check if the variable is loaded correctly", func() {
 			el := NewEnvLayer("BLACK")
 
-			data, err := el.Load()
+			data, err := el.Load(DefaultDelimiter)
 			So(err, ShouldBeNil)
 			So(len(data), ShouldEqual, 1)
 			So(data["BLACK"], ShouldEqual, "blacklisted")

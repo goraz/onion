@@ -13,9 +13,13 @@ type folderLayer struct {
 	file   Layer
 }
 
-func (fl *folderLayer) Load() (map[string]interface{}, error) {
+func (fl *folderLayer) IsLazy() bool {
+	return false
+}
+
+func (fl *folderLayer) Load(d string, p ...string) (map[string]interface{}, error) {
 	if fl.loaded {
-		return fl.file.Load()
+		return fl.file.Load(d, p...)
 	}
 
 	files, err := filepath.Glob(fl.folder + "/" + fl.configName + ".*")
@@ -25,7 +29,7 @@ func (fl *folderLayer) Load() (map[string]interface{}, error) {
 	for i := range files {
 		// Try to load each file, until the first one is accepted
 		fl.file = NewFileLayer(files[i])
-		data, err := fl.file.Load()
+		data, err := fl.file.Load(d, p...)
 		if err == nil {
 			fl.loaded = true
 			return data, nil

@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-//TODO : support for nested value (maybe?)
 type envLoader struct {
 	whiteList []string
 
@@ -13,7 +12,11 @@ type envLoader struct {
 	data   map[string]interface{}
 }
 
-func (el *envLoader) Load() (map[string]interface{}, error) {
+func (el *envLoader) IsLazy() bool {
+	return false
+}
+
+func (el *envLoader) Load(string, ...string) (map[string]interface{}, error) {
 	if el.loaded {
 		return el.data, nil
 	}

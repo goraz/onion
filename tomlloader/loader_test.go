@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/fzerorubigd/onion"
+	. "gopkg.in/fzerorubigd/onion.v2"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

@@ -15,7 +15,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/fzerorubigd/onion"
+	"gopkg.in/fzerorubigd/onion.v2"
 )
 
 type tomlLoader struct {

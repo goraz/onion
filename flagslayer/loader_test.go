@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/fzerorubigd/onion"
+	. "gopkg.in/fzerorubigd/onion.v2"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestYamlLoader(t *testing.T) {
+func TestFlagsLoader(t *testing.T) {
 	Convey("Load flag data in config", t, func() {
 		o := New()
 		flagset := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)

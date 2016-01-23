@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/fzerorubigd/onion"
 	. "github.com/smartystreets/goconvey/convey"
+	. "gopkg.in/fzerorubigd/onion.v2"
 )
 
 func TestYamlLoader(t *testing.T) {

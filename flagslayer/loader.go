@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/fzerorubigd/onion"
+	"gopkg.in/fzerorubigd/onion.v2"
 )
 
 // FlagLayer is for handling the layer
@@ -37,7 +37,11 @@ type flagLayer struct {
 	data      map[string]interface{}
 }
 
-func (fl *flagLayer) Load() (map[string]interface{}, error) {
+func (fl *flagLayer) IsLazy() bool {
+	return false
+}
+
+func (fl *flagLayer) Load(d string, p ...string) (map[string]interface{}, error) {
 	if !fl.flags.Parsed() {
 		fl.flags.Parse(os.Args[1:])
 	}
@@ -58,27 +62,27 @@ func (fl *flagLayer) Load() (map[string]interface{}, error) {
 		}
 	}
 
-	return inner.Load()
+	return inner.Load(d, p...)
 }
 
 // SetBool set a boolean value
-func (fl *flagLayer) SetBool(configkey, name string, value bool, usage string) {
-	fl.data[configkey] = fl.flags.Bool(name, value, usage)
+func (fl *flagLayer) SetBool(configKey, name string, value bool, usage string) {
+	fl.data[configKey] = fl.flags.Bool(name, value, usage)
 }
 
 // SetDuration set a duration value
-func (fl *flagLayer) SetDuration(configkey, name string, value time.Duration, usage string) {
-	fl.data[configkey] = fl.flags.Duration(name, value, usage)
+func (fl *flagLayer) SetDuration(configKey, name string, value time.Duration, usage string) {
+	fl.data[configKey] = fl.flags.Duration(name, value, usage)
 }
 
 //SetInt64 set an int64 value from flags library
-func (fl *flagLayer) SetInt64(configkey, name string, value int64, usage string) {
-	fl.data[configkey] = fl.flags.Int64(name, value, usage)
+func (fl *flagLayer) SetInt64(configKey, name string, value int64, usage string) {
+	fl.data[configKey] = fl.flags.Int64(name, value, usage)
 }
 
 //SetString set a string
-func (fl *flagLayer) SetString(configkey, name string, value string, usage string) {
-	fl.data[configkey] = fl.flags.String(name, value, usage)
+func (fl *flagLayer) SetString(configKey, name string, value string, usage string) {
+	fl.data[configKey] = fl.flags.String(name, value, usage)
 }
 
 func (fl *flagLayer) GetDelimiter() string {
@@ -100,5 +104,9 @@ func NewFlagLayer(f *flag.FlagSet) FlagLayer {
 		f = flag.CommandLine
 	}
 
-	return &flagLayer{f, ".", make(map[string]interface{})}
+	return &flagLayer{
+		flags:     f,
+		delimiter: onion.DefaultDelimiter,
+		data:      make(map[string]interface{}),
+	}
 }
