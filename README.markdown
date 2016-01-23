@@ -1,8 +1,9 @@
 # onion
 
+
 [![Build Status](https://travis-ci.org/fzerorubigd/onion.svg)](https://travis-ci.org/fzerorubigd/onion)
-[![Coverage Status](https://coveralls.io/repos/fzerorubigd/onion/badge.svg?branch=master&service=github)](https://coveralls.io/github/fzerorubigd/onion?branch=master)
-[![GoDoc](https://godoc.org/github.com/fzerorubigd/onion?status.svg)](https://godoc.org/github.com/fzerorubigd/onion)
+[![Coverage Status](https://coveralls.io/repos/fzerorubigd/onion/badge.svg?branch=v2&service=github)](https://coveralls.io/github/fzerorubigd/onion?branch=v2)
+[![GoDoc](https://godoc.org/gopkg.in/fzerorubigd/onion.v2?status.svg)](https://godoc.org/gopg.in/fzerorubigd/onion.v2)
 
 --
     import "gopkg.in/fzerorubigd/onion.v2"
@@ -16,7 +17,7 @@ Each config object can has more than one config layer. currently there is 3
 layer type is supported.
 
 
-### Default layer
+###Default layer
 
 This layer is special layer to set default for configs. usage is simple :
 
@@ -24,19 +25,17 @@ This layer is special layer to set default for configs. usage is simple :
 l := onion.NewDefaultLayer()
 l.SetDefault("my.daughter.name", "bita")
 ```
-
 This layer must be added before all other layer, and defaults must be added
 before adding it to onion
 
 
-### File layer
+###File layer
 
 File layer is the basic one.
 
 ```go
 l := onion.NewFileLayer("/path/to/the/file.ext")
 ```
-
 the onion package only support for json extension by itself, and there is toml
 and yaml loader available as sub package for this one.
 
@@ -44,7 +43,7 @@ Also writing a new loader is very easy, just implement the FileLoader interface
 and call the RegisterLoader function with your loader object
 
 
-### Folder layer
+###Folder layer
 
 Folder layer is much like file layer but it get a folder and search for the
 first file with tha specific name and supported extension
@@ -55,24 +54,25 @@ the file name part is WHITOUT extension. library check for supported loader
 extension in that folder and return the first one.
 
 
-### ENV layer
+###ENV layer
 
-The other layer is env layer. this layer accept a white list of env variables and
-use them as key for the env variables.
+The other layer is env layer. this layer accept a whitelist of env variables and
+use them as value .
 ```go
 l := onion.NewEnvLayer("PORT", "STATIC_ROOT", "NEXT")
 ```
 this layer currently dose not support nested variables.
 
 
-### YOUR layer
+###YOUR layer
 
 Just implement the onion.Layer interface!
 
 
-## Getting from config
+##Getting from config
 
 After adding layers to config, its easy to get the config values.
+
 ```go
 o := onion.New()
 o.AddLayer(l1)
@@ -83,33 +83,40 @@ o.GetBool("anotherkey", true)
 
 o.GetInt("worker.count", 10) // Nested value
 ```
+
 library also support for mapping data to a structure. define your structure :
+
 ```go
 type MyStruct struct {
-    Key1 string
-    Key2 int
+	Key1 string
+	Key2 int
 
-    Key3 bool `onion:"boolkey"`  // struct tag is supported to change the name
-
-    Other struct {
-        Nested string
-    }
+	Key3 bool `onion:"boolkey"`  // struct tag is supported to change the name
+	
+	Other struct {
+		Nested string
+	}
 }
 
 o := onion.New()
-// Add layers.....
+// Add layers...
 c := MyStruct{}
 o.GetStruct("prefix", &c)
 ```
-the the `c.Key1` is equal to `o.GetStringDefault("prefix.key1", c.Key1)` , note that the
-value before calling this function is used as default value, when the type is
-not matched or the value is not exists, the the default is returned.
-For changing the key name, struct tag is supported. for example in the above example
-`c.Key3` is equal to `o.GetBoolDefault("prefix.boolkey", c.Key3)`
+
+the the c.Key1 is equal to o.GetStringDefault("prefix.key1", c.Key1) , note that
+the value before calling this function is used as default value, when the type
+is not matched or the value is not exists, the the default is returned For
+changing the key name, struct tag is supported. for example in the above example
+c.Key3 is equal to o.GetBoolDefault("prefix.boolkey", c.Key3)
 
 Also nested struct (and embeded ones) are supported too.
 
 ## Usage
+
+```go
+const DefaultDelimiter = "."
+```
 
 #### func  RegisterLoader
 
@@ -149,7 +156,7 @@ layer to onion.
 
 ```go
 type FileLoader interface {
-	// Must return the list of supported ext for this loader interface
+	// SupportedEXT Must return the list of supported ext for this loader interface
 	SupportedEXT() []string
 	// Convert is for translating the file data into config structure.
 	Convert(io.Reader) (map[string]interface{}, error)
@@ -162,8 +169,14 @@ FileLoader is an interface to handle load config from a file
 
 ```go
 type Layer interface {
-	// Load a layer into the Onion
-	Load() (map[string]interface{}, error)
+	// IsLazy return true if the loader is lazy. if this return false, then
+	// the Load method is called once.
+	IsLazy() bool
+	// Load a layer into the Onion. if this is lazy, then the call is only done in the
+	// registration, if not, the load method with empty parameter is used to initialize
+	// the loader
+	// multiple parameter is for scope. for example database.password means two parameter
+	Load(string, ...string) (map[string]interface{}, error)
 }
 ```
 
@@ -248,6 +261,53 @@ func (o *Onion) GetDelimiter() string
 ```
 GetDelimiter return the delimiter for nested key
 
+#### func (*Onion) GetDuration
+
+```go
+func (o *Onion) GetDuration(key string) time.Duration
+```
+GetDuration is for getting duration from config, it cast both int and string to
+duration
+
+#### func (*Onion) GetDurationDefault
+
+```go
+func (o *Onion) GetDurationDefault(key string, def time.Duration) time.Duration
+```
+GetDurationDefault is a function to get duration from config. it support both
+string duration (like 1h3m2s) and integer duration
+
+#### func (*Onion) GetFloat32
+
+```go
+func (o *Onion) GetFloat32(key string) float32
+```
+GetFloat32 return an float32 value, if the value is not there, then it returns
+zero value
+
+#### func (*Onion) GetFloat32Default
+
+```go
+func (o *Onion) GetFloat32Default(key string, def float32) float32
+```
+GetFloat32Default return an float32 value from Onion, if the value is not exists
+or its not a float32, default is returned
+
+#### func (*Onion) GetFloat64
+
+```go
+func (o *Onion) GetFloat64(key string) float64
+```
+GetFloat64 return the float64 value from config, if its not there, return zero
+
+#### func (*Onion) GetFloat64Default
+
+```go
+func (o *Onion) GetFloat64Default(key string, def float64) float64
+```
+GetFloat64Default return an float64 value from Onion, if the value is not exists
+or if the value is not float64 then return the default
+
 #### func (*Onion) GetInt
 
 ```go
@@ -277,34 +337,6 @@ func (o *Onion) GetIntDefault(key string, def int) int
 ```
 GetIntDefault return an int value from Onion, if the value is not exists or its
 not an integer , default is returned
-
-```go
-func (o *Onion) GetFloat32(key string) float32
-```
-GetFloat32 return an float32 value, if the value is not there, then it return zero value
-
-#### func (*Onion) GetFloat64
-
-```go
-func (o *Onion) GetFloat64(key string) float64
-```
-GetFloat64 return the float64 value from config, if its not there, return zero
-
-#### func (*Onion) GetFloat64Default
-
-```go
-func (o *Onion) GetFloat64Default(key string, def float64) float64
-```
-GetFloat64Default return an float64 value from Onion, if the value is not exists or
-if the value is not float64 then return the default
-
-#### func (*Onion) GetFloat32Default
-
-```go
-func (o *Onion) GetFloat32Default(key string, def float32) float32
-```
-GetFloat32Default return an float32 value from Onion, if the value is not exists or its
-not a float32, default is returned
 
 #### func (*Onion) GetString
 
