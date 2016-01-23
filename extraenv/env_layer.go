@@ -1,3 +1,5 @@
+// Package extraenv is the loader from the os env using prefix.
+// for example for getting the test.path.key it check for PREFIX_TEST_PATH_KEY from the env
 package extraenv
 
 import (

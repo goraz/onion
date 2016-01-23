@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// DefaultDelimiter is the default delimiter for the config scope
 const DefaultDelimiter = "."
 
 var lock = &sync.RWMutex{}
@@ -41,9 +42,8 @@ type Onion struct {
 func (sl singleLayer) getData(d string, path ...string) (map[string]interface{}, error) {
 	if sl.lazy {
 		return sl.layer.Load(d, path...)
-	} else {
-		return sl.data, nil
 	}
+	return sl.data, nil
 }
 
 // AddLayer add a new layer to the end of config layers. last layer is loaded after all other
