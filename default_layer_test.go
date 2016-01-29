@@ -9,7 +9,7 @@ import (
 func TestDefaultLayer(t *testing.T) {
 	Convey("Default layer basic test, some kind of coverage bitch :) ", t, func() {
 		l := NewDefaultLayer()
-		data, err := l.Load(DefaultDelimiter)
+		data, err := l.Load()
 		So(err, ShouldBeNil)
 		So(len(data), ShouldEqual, 0)
 

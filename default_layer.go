@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// DefaultLayer is a layer to handle defalt value for layer.
+// DefaultLayer is a layer to handle default value for layer.
 type DefaultLayer interface {
 	Layer
 	// SetDefault set a default value for a key
@@ -69,11 +69,7 @@ func interfaceSetDefault(k []string, v interface{}, scope map[interface{}]interf
 	return stringSetDefault(k[1:], v, scope[k[0]].(map[string]interface{}))
 }
 
-func (dl *defaultLayer) IsLazy() bool {
-	return false
-}
-
-func (dl *defaultLayer) Load(string, ...string) (map[string]interface{}, error) {
+func (dl *defaultLayer) Load() (map[string]interface{}, error) {
 	return dl.data, nil
 }
 
@@ -96,9 +92,12 @@ func (dl *defaultLayer) SetDelimiter(d string) {
 	dl.delimiter = d
 }
 
-// NewDefaultLayer is used to return a default layer. shoud load this layer
-// before any other layer, and before ading it, must add default value before
+// NewDefaultLayer is used to return a default layer. should load this layer
+// before any other layer, and before adding it, must add default value before
 // adding this layer to onion.
 func NewDefaultLayer() DefaultLayer {
-	return &defaultLayer{".", make(map[string]interface{})}
+	return &defaultLayer{
+		delimiter: DefaultDelimiter,
+		data:      make(map[string]interface{}),
+	}
 }

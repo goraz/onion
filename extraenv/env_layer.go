@@ -13,33 +13,17 @@ type envLoader struct {
 	prefix string
 }
 
-func (el *envLoader) IsLazy() bool {
-	return true
-}
-
-func createNestedMap(v interface{}, p ...string) interface{} {
-	if len(p) == 0 {
-		return v
-	}
-	return map[string]interface{}{p[0]: createNestedMap(v, p[1:]...)}
-}
-
-func (el *envLoader) Load(d string, path ...string) (map[string]interface{}, error) {
-	if len(path) == 0 {
-		return nil, nil
-	}
-
+func (el *envLoader) Get(path ...string) (interface{}, bool) {
 	p := el.prefix + "_" + strings.ToUpper(strings.Join(path, "_"))
 	v := os.Getenv(p)
-	m := make(map[string]interface{})
 	if v != "" && len(p) > 0 {
-		m = createNestedMap(v, path...).(map[string]interface{})
+		return v, true
 	}
-	return m, nil
+	return nil, false
 }
 
 // NewExtraEnvLayer create a environment loader. this layer is base on the influxdb config
-func NewExtraEnvLayer(prefix string) onion.Layer {
+func NewExtraEnvLayer(prefix string) onion.LazyLayer {
 	return &envLoader{
 		prefix: strings.ToUpper(prefix),
 	}

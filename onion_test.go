@@ -45,36 +45,17 @@ type structExample struct {
 }
 
 type layerLazyMock struct {
-	fail bool
 }
 
-func (lm layerMock) IsLazy() bool {
-	return false
-}
-
-func (lm layerMock) Load(string, ...string) (map[string]interface{}, error) {
+func (lm layerMock) Load() (map[string]interface{}, error) {
 	return lm.data, nil
 }
 
-func (lm layerLazyMock) IsLazy() bool {
-	return true
-}
-
-func (lm layerLazyMock) Load(d string, p ...string) (map[string]interface{}, error) {
+func (lm layerLazyMock) Get(p ...string) (interface{}, bool) {
 	if len(p) == 0 {
-		if lm.fail {
-			return nil, fmt.Errorf("err")
-		}
-		return nil, nil
+		return nil, false
 	}
-	return createNestedMap(strings.Join(p, "-"), p...).(map[string]interface{}), nil
-}
-
-func createNestedMap(v interface{}, p ...string) interface{} {
-	if len(p) == 0 {
-		return v
-	}
-	return map[string]interface{}{p[0]: createNestedMap(v, p[1:]...)}
+	return strings.Join(p, "-"), true
 }
 
 func getMap(prefix string, s ...interface{}) map[string]interface{} {
@@ -290,9 +271,8 @@ func TestOnion(t *testing.T) {
 
 	Convey("test lazy loader", t, func() {
 		o := New()
-		So(o.AddLayer(layerLazyMock{}), ShouldBeNil)
+		o.AddLazyLayer(layerLazyMock{})
 		So(o.GetString("a.b.c.d"), ShouldEqual, "a-b-c-d")
-		So(o.AddLayer(layerLazyMock{fail: true}), ShouldNotBeNil)
 	})
 
 }

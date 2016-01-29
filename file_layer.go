@@ -24,14 +24,9 @@ type fileLayer struct {
 	data   map[string]interface{}
 }
 
-// IsLazy for file layer, is always return true
-func (fl *fileLayer) IsLazy() bool {
-	return false
-}
-
 // Load a file. also save it's data so the next time it can simply return it
 // may be I should remove cache?
-func (fl *fileLayer) Load(string, ...string) (map[string]interface{}, error) {
+func (fl *fileLayer) Load() (map[string]interface{}, error) {
 	if fl.loaded {
 		return fl.data, nil
 	}

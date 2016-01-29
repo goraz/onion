@@ -12,11 +12,7 @@ type envLoader struct {
 	data   map[string]interface{}
 }
 
-func (el *envLoader) IsLazy() bool {
-	return false
-}
-
-func (el *envLoader) Load(string, ...string) (map[string]interface{}, error) {
+func (el *envLoader) Load() (map[string]interface{}, error) {
 	if el.loaded {
 		return el.data, nil
 	}
@@ -31,7 +27,11 @@ func (el *envLoader) Load(string, ...string) (map[string]interface{}, error) {
 }
 
 // NewEnvLayer create a environment loader. this loader accept a whitelist of allowed variables
-// TODO : find a way to map env variable with different name
+// DEPRECATED : use the extraenv loader
 func NewEnvLayer(whiteList ...string) Layer {
-	return &envLoader{whiteList, false, make(map[string]interface{})}
+	return &envLoader{
+		whiteList: whiteList,
+		loaded:    false,
+		data:      make(map[string]interface{}),
+	}
 }

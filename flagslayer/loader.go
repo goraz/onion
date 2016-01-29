@@ -37,11 +37,7 @@ type flagLayer struct {
 	data      map[string]interface{}
 }
 
-func (fl *flagLayer) IsLazy() bool {
-	return false
-}
-
-func (fl *flagLayer) Load(d string, p ...string) (map[string]interface{}, error) {
+func (fl *flagLayer) Load() (map[string]interface{}, error) {
 	if !fl.flags.Parsed() {
 		fl.flags.Parse(os.Args[1:])
 	}
@@ -62,7 +58,7 @@ func (fl *flagLayer) Load(d string, p ...string) (map[string]interface{}, error)
 		}
 	}
 
-	return inner.Load(d, p...)
+	return inner.Load()
 }
 
 // SetBool set a boolean value

@@ -15,19 +15,22 @@ var lock = &sync.RWMutex{}
 
 // Layer is an interface to handle the load phase.
 type Layer interface {
-	// IsLazy return true if the loader is lazy. if this return false, then
-	// the Load method is called once.
-	IsLazy() bool
-	// Load a layer into the Onion. if this is lazy, then the call is only done in the
-	// registration, if not, the load method with empty parameter is used to initialize
-	// the loader
-	// multiple parameter is for scope. for example database.password means two parameter
-	Load(string, ...string) (map[string]interface{}, error)
+	// Load a layer into the Onion. the call is only done in the
+	// registration
+	Load() (map[string]interface{}, error)
+}
+
+// LazyLayer is the layer for lazy config sources, when the entire configs is not
+// available at the registration
+type LazyLayer interface {
+	// Get return the value for this config in this layer, if exists, if not return
+	// false as the 2nd return value
+	Get(...string) (interface{}, bool)
 }
 
 type singleLayer struct {
 	layer Layer
-	lazy  bool
+	lazy  LazyLayer
 	data  map[string]interface{}
 }
 
@@ -39,11 +42,11 @@ type Onion struct {
 	ll        layerList
 }
 
-func (sl singleLayer) getData(d string, path ...string) (map[string]interface{}, error) {
-	if sl.lazy {
-		return sl.layer.Load(d, path...)
+func (sl singleLayer) getData(d string, path ...string) (interface{}, bool) {
+	if sl.lazy != nil {
+		return sl.lazy.Get(path...)
 	}
-	return sl.data, nil
+	return searchStringMap(path, sl.data)
 }
 
 // AddLayer add a new layer to the end of config layers. last layer is loaded after all other
@@ -52,35 +55,37 @@ func (o *Onion) AddLayer(l Layer) error {
 	lock.Lock()
 	defer lock.Unlock()
 
-	if l.IsLazy() {
-		_, err := l.Load(o.GetDelimiter()) // this is for initialization
-		if err != nil {
-			return err
-		}
-		o.ll = append(
-			o.ll,
-			singleLayer{
-				layer: l,
-				lazy:  true,
-				data:  nil,
-			},
-		)
-	} else {
-		data, err := l.Load(o.GetDelimiter())
-		if err != nil {
-			return err
-		}
-
-		o.ll = append(
-			o.ll,
-			singleLayer{
-				layer: l,
-				lazy:  false,
-				data:  lowerStringMap(data),
-			},
-		)
+	data, err := l.Load()
+	if err != nil {
+		return err
 	}
+
+	o.ll = append(
+		o.ll,
+		singleLayer{
+			layer: l,
+			lazy:  nil,
+			data:  lowerStringMap(data),
+		},
+	)
+
 	return nil
+}
+
+// AddLazyLayer add a new lazy layer to the end of config layers. last layer is loaded after
+// all other layer
+func (o *Onion) AddLazyLayer(l LazyLayer) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	o.ll = append(
+		o.ll,
+		singleLayer{
+			layer: nil,
+			lazy:  l,
+			data:  nil,
+		},
+	)
 }
 
 // GetDelimiter return the delimiter for nested key
@@ -101,11 +106,13 @@ func (o *Onion) SetDelimiter(d string) {
 func (o *Onion) Get(key string) (interface{}, bool) {
 	lock.RLock()
 	defer lock.RUnlock()
-
+	key = strings.Trim(key, " ")
+	if len(key) == 0 {
+		return nil, false
+	}
 	path := strings.Split(strings.ToLower(key), o.GetDelimiter())
 	for i := len(o.ll) - 1; i >= 0; i-- {
-		l, _ := o.ll[i].getData(o.GetDelimiter(), path...)
-		res, found := searchStringMap(path, l)
+		res, found := o.ll[i].getData(o.GetDelimiter(), path...)
 		if found {
 			return res, found
 		}

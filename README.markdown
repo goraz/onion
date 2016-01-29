@@ -11,7 +11,7 @@
 Package onion is a layer based, pluggable config manager for golang.
 
 
-## Layers
+### Layers
 
 Each config object can has more than one config layer. currently there is 3
 layer type is supported.
@@ -66,7 +66,7 @@ this layer currently dose not support nested variables.
 
 ###YOUR layer
 
-Just implement the onion.Layer interface!
+Just implement the onion.Layer or onion.LazyLayer interface!
 
 
 ##Getting from config
@@ -114,9 +114,14 @@ Also nested struct (and embeded ones) are supported too.
 
 ## Usage
 
+### constants
 ```go
 const DefaultDelimiter = "."
 ```
+
+DefaultDelimiter is the default delimiter for the config scope
+
+### functions
 
 #### func  RegisterLoader
 
@@ -141,15 +146,15 @@ type DefaultLayer interface {
 }
 ```
 
-DefaultLayer is a layer to handle defalt value for layer.
+DefaultLayer is a layer to handle default value for layer.
 
 #### func  NewDefaultLayer
 
 ```go
 func NewDefaultLayer() DefaultLayer
 ```
-NewDefaultLayer is used to return a default layer. shoud load this layer before
-any other layer, and before ading it, must add default value before adding this
+NewDefaultLayer is used to return a default layer. should load this layer before
+any other layer, and before adding it, must add default value before adding this
 layer to onion.
 
 #### type FileLoader
@@ -169,14 +174,9 @@ FileLoader is an interface to handle load config from a file
 
 ```go
 type Layer interface {
-	// IsLazy return true if the loader is lazy. if this return false, then
-	// the Load method is called once.
-	IsLazy() bool
-	// Load a layer into the Onion. if this is lazy, then the call is only done in the
-	// registration, if not, the load method with empty parameter is used to initialize
-	// the loader
-	// multiple parameter is for scope. for example database.password means two parameter
-	Load(string, ...string) (map[string]interface{}, error)
+	// Load a layer into the Onion. the call is only done in the
+	// registration
+	Load() (map[string]interface{}, error)
 }
 ```
 
@@ -188,7 +188,7 @@ Layer is an interface to handle the load phase.
 func NewEnvLayer(whiteList ...string) Layer
 ```
 NewEnvLayer create a environment loader. this loader accept a whitelist of
-allowed variables TODO : find a way to map env variable with different name
+allowed variables DEPRECATED : use the extraenv loader
 
 #### func  NewFileLayer
 
@@ -207,6 +207,19 @@ func NewFolderLayer(folder, configName string) Layer
 NewFolderLayer return a new folder layer, this layer search in a folder for all
 supported file, and when it hit the first loadable file then simply return it
 the config name must not contain file extension
+
+#### type LazyLayer
+
+```go
+type LazyLayer interface {
+	// Get return the value for this config in this layer, if exists, if not return
+	// false as the 2nd return value
+	Get(...string) (interface{}, bool)
+}
+```
+
+LazyLayer is the layer for lazy config sources, when the entire configs is not
+available at the registration
 
 #### type Onion
 
@@ -231,6 +244,14 @@ func (o *Onion) AddLayer(l Layer) error
 ```
 AddLayer add a new layer to the end of config layers. last layer is loaded after
 all other layer
+
+#### func (*Onion) AddLazyLayer
+
+```go
+func (o *Onion) AddLazyLayer(l LazyLayer)
+```
+AddLazyLayer add a new lazy layer to the end of config layers. last layer is
+loaded after all other layer
 
 #### func (*Onion) Get
 

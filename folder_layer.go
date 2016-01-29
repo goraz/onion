@@ -13,13 +13,9 @@ type folderLayer struct {
 	file   Layer
 }
 
-func (fl *folderLayer) IsLazy() bool {
-	return false
-}
-
-func (fl *folderLayer) Load(d string, p ...string) (map[string]interface{}, error) {
+func (fl *folderLayer) Load() (map[string]interface{}, error) {
 	if fl.loaded {
-		return fl.file.Load(d, p...)
+		return fl.file.Load()
 	}
 
 	files, err := filepath.Glob(fl.folder + "/" + fl.configName + ".*")
@@ -29,7 +25,7 @@ func (fl *folderLayer) Load(d string, p ...string) (map[string]interface{}, erro
 	for i := range files {
 		// Try to load each file, until the first one is accepted
 		fl.file = NewFileLayer(files[i])
-		data, err := fl.file.Load(d, p...)
+		data, err := fl.file.Load()
 		if err == nil {
 			fl.loaded = true
 			return data, nil
@@ -43,10 +39,15 @@ func (fl *folderLayer) Load(d string, p ...string) (map[string]interface{}, erro
 // all supported file, and when it hit the first loadable file then simply return it
 // the config name must not contain file extension
 func NewFolderLayer(folder, configName string) Layer {
-	// TODO : os specific seperator
+	// TODO : os specific separator
 	if folder[len(folder)-1:] != "/" {
 		folder += "/"
 	}
 
-	return &folderLayer{folder, configName, false, nil}
+	return &folderLayer{
+		folder:     folder,
+		configName: configName,
+		loaded:     false,
+		file:       nil,
+	}
 }
