@@ -12,11 +12,20 @@ func (o *Onion) GetStruct(prefix string, s interface{}) {
 	iterateConfig(o, reflect.ValueOf(s), prefix)
 }
 
+func join(delim string, parts ...string) string {
+	res := ""
+	for i := range parts {
+		if res != "" && parts[i] != "" {
+			res += delim
+		}
+		res += parts[i]
+	}
+
+	return res
+}
+
 func iterateConfig(o *Onion, v reflect.Value, op string) {
 	prefix := op
-	if prefix != "" {
-		prefix = prefix + o.GetDelimiter()
-	}
 	typ := v.Type()
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
@@ -43,37 +52,41 @@ func iterateConfig(o *Onion, v reflect.Value, op string) {
 			switch v.Field(i).Kind() {
 			case reflect.Bool:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetBool(o.GetBoolDefault(prefix+name, v.Field(i).Bool()))
+					v.Field(i).SetBool(o.GetBoolDefault(join(o.GetDelimiter(), prefix, name), v.Field(i).Bool()))
 				}
 			case reflect.Int:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetInt(o.GetInt64Default(prefix+name, v.Field(i).Int()))
+					v.Field(i).SetInt(o.GetInt64Default(join(o.GetDelimiter(), prefix, name), v.Field(i).Int()))
 				}
 			case reflect.Int64:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetInt(o.GetInt64Default(prefix+name, v.Field(i).Int()))
+					v.Field(i).SetInt(o.GetInt64Default(join(o.GetDelimiter(), prefix, name), v.Field(i).Int()))
 				}
 			case reflect.String:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetString(o.GetStringDefault(prefix+name, v.Field(i).String()))
+					v.Field(i).SetString(o.GetStringDefault(join(o.GetDelimiter(), prefix, name), v.Field(i).String()))
 				}
 			case reflect.Float64:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetFloat(o.GetFloat64Default(prefix+name, v.Field(i).Float()))
+					v.Field(i).SetFloat(o.GetFloat64Default(join(o.GetDelimiter(), prefix, name), v.Field(i).Float()))
 				}
 			case reflect.Float32:
 				if v.Field(i).CanSet() {
-					v.Field(i).SetFloat(o.GetFloat64Default(prefix+name, v.Field(i).Float()))
+					v.Field(i).SetFloat(o.GetFloat64Default(join(o.GetDelimiter(), prefix, name), v.Field(i).Float()))
 				}
 			case reflect.Struct:
-				iterateConfig(o, v.Field(i).Addr(), prefix+name)
+				iterateConfig(o, v.Field(i).Addr(), join(o.GetDelimiter(), prefix, name))
 			}
 		} else { // Anonymous structures
 			name := p.Tag.Get("onion")
+			if name == "-" {
+				// Ignore this key.
+				continue
+			}
 			if name == "" {
 				prefix = op // Reset the prefix to remove the delimiter
 			}
-			iterateConfig(o, v.Field(i).Addr(), prefix+name)
+			iterateConfig(o, v.Field(i).Addr(), join(o.GetDelimiter(), prefix, name))
 		}
 	}
 

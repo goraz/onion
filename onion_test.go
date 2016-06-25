@@ -44,6 +44,19 @@ type structExample struct {
 	Ignored string `onion:"-"`
 }
 
+type EmbededTest struct {
+	Operator   string `onion:"operator"`
+	Aggregator string `onion:"aggregator"`
+}
+
+type Worker struct {
+	Inner struct {
+		Tmp2 int `onion:"tmp2"`
+		EmbededTest
+		Tmp int `onion:"tmp"`
+	} `onion:"inner"`
+}
+
 type layerLazyMock struct {
 }
 
@@ -275,6 +288,22 @@ func TestOnion(t *testing.T) {
 		So(o.GetString("a.b.c.d"), ShouldEqual, "a-b-c-d")
 	})
 
+	Convey("test bug with inner struct", t, func() {
+		o := New()
+		def := NewDefaultLayer()
+		def.SetDefault("inner.operator", "op")
+		def.SetDefault("inner.aggregator", "agg")
+		def.SetDefault("inner.tmp", 99)
+		def.SetDefault("inner.tmp2", 101)
+		o.AddLayer(def)
+
+		cfg := &Worker{}
+		o.GetStruct("", cfg)
+		So(cfg.Inner.Operator, ShouldEqual, "op")
+		So(cfg.Inner.Aggregator, ShouldEqual, "agg")
+		So(cfg.Inner.Tmp2, ShouldEqual, 101)
+		So(cfg.Inner.Tmp, ShouldEqual, 99)
+	})
 }
 
 func BenchmarkOion(b *testing.B) {
