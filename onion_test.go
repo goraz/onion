@@ -103,6 +103,7 @@ func TestOnion(t *testing.T) {
 		lm.data["slice3"] = []interface{}{"a", "b", true}
 		lm.data["slice4"] = []int{1, 2, 3}
 		lm.data["ignored"] = "ignore me"
+		lm.data["strAsSlice"] = "one,two,three"
 
 		lm.data["dur"] = time.Minute
 		lm.data["durstring"] = "1h2m3s"
@@ -245,9 +246,11 @@ func TestOnion(t *testing.T) {
 			So(reflect.DeepEqual(o.GetStringSlice("slice1"), []string{"a", "b", "c"}), ShouldBeTrue)
 			So(reflect.DeepEqual(o.GetStringSlice("slice2"), []string{"a", "b", "c"}), ShouldBeTrue)
 			So(o.GetStringSlice("slice3"), ShouldBeNil)
+			So(o.GetStringSlice("slice4"), ShouldBeNil)
 			So(o.GetStringSlice("notslice3"), ShouldBeNil)
 			So(o.GetStringSlice("yes.str1"), ShouldBeNil)
-			So(o.GetStringSlice("slice4"), ShouldBeNil)
+			So(reflect.DeepEqual(o.GetStringSlice("yes.str2"), []string{"hi"}), ShouldBeTrue)
+			So(reflect.DeepEqual(o.GetStringSlice("strAsSlice"), []string{"one", "two", "three"}), ShouldBeTrue)
 		})
 	})
 

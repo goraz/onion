@@ -396,7 +396,11 @@ func (o *Onion) GetStringSlice(key string) []string {
 	var ok bool
 	v, ok := o.getSlice(key)
 	if !ok {
-		return nil
+		str := o.GetString(key)
+		if len(str) <= 0 {
+			return nil
+		}
+		v = strings.Split(str, ",")
 	}
 
 	switch nv := v.(type) {

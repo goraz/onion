@@ -410,7 +410,9 @@ value is not string, return the default
 ```go
 func (o *Onion) GetStringSlice(key string) []string
 ```
-GetStringSlice try to get a slice from the config
+GetStringSlice will try to get a string slice for the given key. If the value
+is just a string, it will be split (via commas) to create a string slice. If
+the value is a slice with non-string elements, the return will be empty.
 
 #### func (*Onion) GetStruct
 
