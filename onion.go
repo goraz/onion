@@ -11,8 +11,6 @@ import (
 // DefaultDelimiter is the default delimiter for the config scope
 const DefaultDelimiter = "."
 
-var lock = &sync.RWMutex{}
-
 // Layer is an interface to handle the load phase.
 type Layer interface {
 	// Load a layer into the Onion. the call is only done in the
@@ -36,10 +34,19 @@ type singleLayer struct {
 
 type layerList []singleLayer
 
+type variable struct {
+	key string
+	ref interface{}
+}
+
 // Onion is a layer base configuration system
 type Onion struct {
 	delimiter string
 	ll        layerList
+	llock     sync.RWMutex
+
+	references []variable
+	refLock    sync.RWMutex
 }
 
 func (sl singleLayer) getData(d string, path ...string) (interface{}, bool) {
@@ -52,8 +59,8 @@ func (sl singleLayer) getData(d string, path ...string) (interface{}, bool) {
 // AddLayer add a new layer to the end of config layers. last layer is loaded after all other
 // layer
 func (o *Onion) AddLayer(l Layer) error {
-	lock.Lock()
-	defer lock.Unlock()
+	o.llock.Lock()
+	defer o.llock.Unlock()
 
 	data, err := l.Load()
 	if err != nil {
@@ -75,8 +82,8 @@ func (o *Onion) AddLayer(l Layer) error {
 // AddLazyLayer add a new lazy layer to the end of config layers. last layer is loaded after
 // all other layer
 func (o *Onion) AddLazyLayer(l LazyLayer) {
-	lock.Lock()
-	defer lock.Unlock()
+	o.llock.Lock()
+	defer o.llock.Unlock()
 
 	o.ll = append(
 		o.ll,
@@ -104,8 +111,9 @@ func (o *Onion) SetDelimiter(d string) {
 
 // Get try to get the key from config layers
 func (o *Onion) Get(key string) (interface{}, bool) {
-	lock.RLock()
-	defer lock.RUnlock()
+	o.llock.RLock()
+	defer o.llock.RUnlock()
+
 	key = strings.Trim(key, " ")
 	if len(key) == 0 {
 		return nil, false
@@ -417,6 +425,111 @@ func (o *Onion) GetStringSlice(key string) []string {
 	}
 
 	return nil
+}
+
+func (o *Onion) addRef(key string, ref interface{}) {
+	o.refLock.Lock()
+	defer o.refLock.Unlock()
+
+	o.references = append(o.references, variable{key: key, ref: ref})
+}
+
+// RegisterInt return an int variable and set the value when the config is loaded
+func (o *Onion) RegisterInt(key string, def int) *int {
+	var v = def
+	o.addRef(key, &v)
+
+	return &v
+}
+
+// RegisterInt64 return an int64 variable and set the value when the config is loaded
+func (o *Onion) RegisterInt64(key string, def int64) *int64 {
+	var v = def
+	o.addRef(key, &v)
+
+	return &v
+}
+
+// RegisterString return an string variable and set the value when the config is loaded
+func (o *Onion) RegisterString(key string, def string) *string {
+	var v = def
+	o.addRef(key, &v)
+
+	return &v
+}
+
+// RegisterFloat64 return an float64 variable and set the value when the config is loaded
+func (o *Onion) RegisterFloat64(key string, def float64) *float64 {
+	var v = def
+	o.addRef(key, &v)
+
+	return &v
+}
+
+// RegisterFloat32 return an float32 variable and set the value when the config is loaded
+func (o *Onion) RegisterFloat32(key string, def float32) *float32 {
+	var v = def
+	o.addRef(key, &v)
+
+	return &v
+}
+
+// RegisterBool return an bool variable and set the value when the config is loaded
+func (o *Onion) RegisterBool(key string, def bool) *bool {
+	var v = def
+	o.addRef(key, &v)
+
+	return &v
+}
+
+// RegisterDuration return an duration variable and set the value when the config is loaded
+func (o *Onion) RegisterDuration(key string, def time.Duration) *time.Duration {
+	var v = def
+	o.addRef(key, &v)
+
+	return &v
+}
+
+// Load function is the new behavior of onion after version 3. after calling this all variables
+// registered with Registered* function are loaded.
+func (o *Onion) Load() {
+	o.refLock.RLock()
+	defer o.refLock.RUnlock()
+
+	for i := range o.references {
+		switch t := o.references[i].ref.(type) {
+		case *int:
+			v := o.GetIntDefault(o.references[i].key, *t)
+			*t = v
+		case *int64:
+			v := o.GetInt64Default(o.references[i].key, *t)
+			*t = v
+		case *string:
+			v := o.GetStringDefault(o.references[i].key, *t)
+			*t = v
+		case *float64:
+			v := o.GetFloat64Default(o.references[i].key, *t)
+			*t = v
+		case *float32:
+			v := o.GetFloat32Default(o.references[i].key, *t)
+			*t = v
+		case *bool:
+			v := o.GetBoolDefault(o.references[i].key, *t)
+			*t = v
+		case *time.Duration:
+			v := o.GetDurationDefault(o.references[i].key, *t)
+			*t = v
+		}
+	}
+}
+
+// Reset clear all layers, but not registered variables
+func (o *Onion) Reset() {
+	o.llock.Lock()
+	defer o.llock.Unlock()
+
+	// Delete al layers
+	o.ll = nil
 }
 
 // New return a new Onion

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	. "gopkg.in/fzerorubigd/onion.v2"
+	. "gopkg.in/fzerorubigd/onion.v3"
 )
 
 func TestExtraEnvLoader(t *testing.T) {

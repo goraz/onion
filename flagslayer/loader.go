@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"gopkg.in/fzerorubigd/onion.v2"
+	"gopkg.in/fzerorubigd/onion.v3"
 )
 
 // FlagLayer is for handling the layer

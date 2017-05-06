@@ -1,46 +1,51 @@
 # onion
 
-
 [![Build Status](https://travis-ci.org/fzerorubigd/onion.svg)](https://travis-ci.org/fzerorubigd/onion)
-[![Coverage Status](https://coveralls.io/repos/fzerorubigd/onion/badge.svg?branch=v2&service=github)](https://coveralls.io/github/fzerorubigd/onion?branch=v2)
-[![GoDoc](https://godoc.org/gopkg.in/fzerorubigd/onion.v2?status.svg)](https://godoc.org/gopkg.in/fzerorubigd/onion.v2)
+[![Coverage Status](https://coveralls.io/repos/fzerorubigd/onion/badge.svg?branch=v3&service=github)](https://coveralls.io/github/fzerorubigd/onion?branch=v3)
+[![GoDoc](https://godoc.org/gopkg.in/fzerorubigd/onion.v3?status.svg)](https://godoc.org/gopkg.in/fzerorubigd/onion.v3)
+[![Go Report Card](https://goreportcard.com/badge/gopkg.in/fzerorubigd/onion.v3)](https://goreportcard.com/report/gopkg.in/fzerorubigd/onion.v3)
 
 --
-    import "gopkg.in/fzerorubigd/onion.v2"
 
-Package onion is a layer based, pluggable config manager for golang.
+```go
+    import "gopkg.in/fzerorubigd/onion.v3"
+```
+
+Package onion is a layer based, pluggable config manager for golang. API may break in this version. for stable version
+see "gopkg.in/fzerorubigd/onion.v2"
 
 > Shrek: For your information, there's a lot more to ogres than people think.
- 
+
 > Donkey: Example?
- 
-> Shrek: Example... uh... ogres are like onions! 
 
-> [holds up an onion, which Donkey sniffs] 
+> Shrek: Example... uh... ogres are like onions!
 
-> Donkey: They stink? 
+> [holds up an onion, which Donkey sniffs]
 
-> Shrek: Yes... No! 
+> Donkey: They stink?
 
-> Donkey: Oh, they make you cry? 
+> Shrek: Yes... No!
 
-> Shrek: No! 
+> Donkey: Oh, they make you cry?
+
+> Shrek: No!
 
 > Donkey: Oh, you leave 'em out in the sun, they get all brown, start sproutin' little white hairs...
- 
+
 > Shrek: [peels an onion] NO! Layers. Onions have layers. Ogres have layers... You get it? We both have layers.
- 
+
 > [walks off]
- 
+
 > Donkey: Oh, you both have LAYERS. Oh. You know, not everybody like onions. CAKE! Everybody loves cake! Cakes have layers!
- 
+
 > Shrek: I don't care what everyone likes! Ogres are not like cakes.
- 
+
 > Donkey: You know what ELSE everybody likes? Parfaits! Have you ever met a person, you say, "Let's get some parfait," they say, "Hell no, I don't like no parfait."? Parfaits are delicious!
- 
+
 > Shrek: NO! You dense, irritating, miniature beast of burden! Ogres are like onions! End of story! Bye-bye! See ya later.
- 
-> Donkey: Parfait's gotta be the most delicious thing on the whole damn planet! 
+
+> Donkey: Parfait's gotta be the most delicious thing on the whole damn planet!
+
 
 ### Layers
 
@@ -48,7 +53,7 @@ Each config object can has more than one config layer. currently there is 3
 layer type is supported.
 
 
-###Default layer
+Default layer
 
 This layer is special layer to set default for configs. usage is simple :
 
@@ -56,17 +61,19 @@ This layer is special layer to set default for configs. usage is simple :
 l := onion.NewDefaultLayer()
 l.SetDefault("my.daughter.name", "bita")
 ```
+
 This layer must be added before all other layer, and defaults must be added
 before adding it to onion
 
 
-###File layer
+File layer
 
 File layer is the basic one.
 
 ```go
 l := onion.NewFileLayer("/path/to/the/file.ext")
 ```
+
 the onion package only support for json extension by itself, and there is toml
 and yaml loader available as sub package for this one.
 
@@ -74,33 +81,37 @@ Also writing a new loader is very easy, just implement the FileLoader interface
 and call the RegisterLoader function with your loader object
 
 
-###Folder layer
+Folder layer
 
 Folder layer is much like file layer but it get a folder and search for the
 first file with tha specific name and supported extension
+
 ```go
 l := onion.NewFolderLayer("/path/to/folder", "filename")
 ```
+
 the file name part is WHITOUT extension. library check for supported loader
 extension in that folder and return the first one.
 
 
-###ENV layer
+ENV layer
 
 The other layer is env layer. this layer accept a whitelist of env variables and
 use them as value .
+
 ```go
 l := onion.NewEnvLayer("PORT", "STATIC_ROOT", "NEXT")
 ```
+
 this layer currently dose not support nested variables.
 
 
-###YOUR layer
+YOUR layer
 
-Just implement the onion.Layer or onion.LazyLayer interface!
+Just implement the onion.Layer interface!
 
 
-##Getting from config
+Getting from config
 
 After adding layers to config, its easy to get the config values.
 
@@ -119,18 +130,18 @@ library also support for mapping data to a structure. define your structure :
 
 ```go
 type MyStruct struct {
-	Key1 string
-	Key2 int
+    Key1 string
+    Key2 int
 
-	Key3 bool `onion:"boolkey"`  // struct tag is supported to change the name
-	
-	Other struct {
-		Nested string
-	}
+    Key3 bool `onion:"boolkey"`  // struct tag is supported to change the name
+
+    Other struct {
+        Nested string
+    }
 }
 
 o := onion.New()
-// Add layers...
+// Add layers.....
 c := MyStruct{}
 o.GetStruct("prefix", &c)
 ```
@@ -141,18 +152,14 @@ is not matched or the value is not exists, the the default is returned For
 changing the key name, struct tag is supported. for example in the above example
 c.Key3 is equal to o.GetBoolDefault("prefix.boolkey", c.Key3)
 
-Also nested struct (and embeded ones) are supported too.
+Also nested struct (and embedded ones) are supported too.
 
 ## Usage
 
-### constants
 ```go
 const DefaultDelimiter = "."
 ```
-
 DefaultDelimiter is the default delimiter for the config scope
-
-### functions
 
 #### func  RegisterLoader
 
@@ -410,9 +417,7 @@ value is not string, return the default
 ```go
 func (o *Onion) GetStringSlice(key string) []string
 ```
-GetStringSlice will try to get a string slice for the given key. If the value
-is just a string, it will be split (via commas) to create a string slice. If
-the value is a slice with non-string elements, the return will be empty.
+GetStringSlice try to get a slice from the config
 
 #### func (*Onion) GetStruct
 
@@ -422,6 +427,75 @@ func (o *Onion) GetStruct(prefix string, s interface{})
 GetStruct fill an structure base on the config nested set, this function use
 reflection, and its not good (in my opinion) for frequent call. but its best if
 you need the config to loaded in structure and use that structure after that.
+
+#### func (*Onion) Load
+
+```go
+func (o *Onion) Load()
+```
+Load function is the new behavior of onion after version 3. after calling this
+all variables registered with Registered* function are loaded.
+
+#### func (*Onion) RegisterBool
+
+```go
+func (o *Onion) RegisterBool(key string, def bool) *bool
+```
+RegisterBool return an bool variable and set the value when the config is loaded
+
+#### func (*Onion) RegisterDuration
+
+```go
+func (o *Onion) RegisterDuration(key string, def time.Duration) *time.Duration
+```
+RegisterDuration return an duration variable and set the value when the config
+is loaded
+
+#### func (*Onion) RegisterFloat32
+
+```go
+func (o *Onion) RegisterFloat32(key string, def float32) *float32
+```
+RegisterFloat32 return an float32 variable and set the value when the config is
+loaded
+
+#### func (*Onion) RegisterFloat64
+
+```go
+func (o *Onion) RegisterFloat64(key string, def float64) *float64
+```
+RegisterFloat64 return an float64 variable and set the value when the config is
+loaded
+
+#### func (*Onion) RegisterInt
+
+```go
+func (o *Onion) RegisterInt(key string, def int) *int
+```
+RegisterInt return an int variable and set the value when the config is loaded
+
+#### func (*Onion) RegisterInt64
+
+```go
+func (o *Onion) RegisterInt64(key string, def int64) *int64
+```
+RegisterInt64 return an int64 variable and set the value when the config is
+loaded
+
+#### func (*Onion) RegisterString
+
+```go
+func (o *Onion) RegisterString(key string, def string) *string
+```
+RegisterString return an string variable and set the value when the config is
+loaded
+
+#### func (*Onion) Reset
+
+```go
+func (o *Onion) Reset()
+```
+Reset clear all layers, but not registered variables
 
 #### func (*Onion) SetDelimiter
 

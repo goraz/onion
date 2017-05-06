@@ -307,6 +307,43 @@ func TestOnion(t *testing.T) {
 		So(cfg.Inner.Tmp2, ShouldEqual, 101)
 		So(cfg.Inner.Tmp, ShouldEqual, 99)
 	})
+
+	Convey("test for register variables", t, func() {
+		o := New()
+		intVar := o.RegisterInt("test.int", 10)
+		int64Var := o.RegisterInt64("test.int64", 10)
+		float64Var := o.RegisterFloat64("test.float64", 10)
+		float32Var := o.RegisterFloat32("test.float32", 10)
+		stringVar := o.RegisterString("test.string", "TEST")
+		boolVar := o.RegisterBool("test.bool", false)
+		durationVar := o.RegisterDuration("test.duration", time.Millisecond)
+
+		def := NewDefaultLayer()
+		def.SetDefault("test.int", 100)
+		def.SetDefault("test.int64", 100)
+		def.SetDefault("test.string", "TEST_SET")
+		def.SetDefault("test.float64", 100.11)
+		def.SetDefault("test.float32", 100.11)
+		def.SetDefault("test.bool", true)
+		def.SetDefault("test.duration", time.Second)
+
+		So(o.AddLayer(def), ShouldBeNil)
+
+		o.Load()
+
+		So(*intVar, ShouldEqual, 100)
+		So(*int64Var, ShouldEqual, 100)
+		So(*float64Var, ShouldEqual, 100.11)
+		So(*float32Var, ShouldEqual, 100.11)
+		So(*stringVar, ShouldEqual, "TEST_SET")
+		So(*boolVar, ShouldBeTrue)
+		So(*durationVar, ShouldEqual, time.Second)
+
+		o.Reset()
+		o.Load()
+
+		So(o.GetInt("test.int"), ShouldBeZeroValue)
+	})
 }
 
 func BenchmarkOion(b *testing.B) {

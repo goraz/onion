@@ -104,6 +104,6 @@ not matched or the value is not exists, the the default is returned
 For changing the key name, struct tag is supported. for example in the above
 example c.Key3 is equal to o.GetBoolDefault("prefix.boolkey", c.Key3)
 
-Also nested struct (and embeded ones) are supported too.
+Also nested struct (and embedded ones) are supported too.
 */
 package onion

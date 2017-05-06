@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	. "gopkg.in/fzerorubigd/onion.v2"
 	. "github.com/smartystreets/goconvey/convey"
+	. "gopkg.in/fzerorubigd/onion.v3"
 )
 
 func TestFlagsLoader(t *testing.T) {
