@@ -3,6 +3,11 @@ package onion
 import (
 	"reflect"
 	"strings"
+	"time"
+)
+
+var (
+	durationValue = reflect.ValueOf(time.Second)
 )
 
 // GetStruct fill an structure base on the config nested set, this function use reflection, and its not
@@ -25,6 +30,7 @@ func join(delim string, parts ...string) string {
 }
 
 func setField(o *Onion, v reflect.Value, prefix, name string) {
+
 	switch v.Kind() {
 	case reflect.Bool:
 		if v.CanSet() {
@@ -36,6 +42,11 @@ func setField(o *Onion, v reflect.Value, prefix, name string) {
 		}
 	case reflect.Int64:
 		if v.CanSet() {
+			if v.Type().String() == durationValue.Type().String() {
+				// its a duration
+				v.SetInt(int64(o.GetDurationDefault(join(o.GetDelimiter(), prefix, name), time.Duration(v.Int()))))
+				return
+			}
 			v.SetInt(o.GetInt64Default(join(o.GetDelimiter(), prefix, name), v.Int()))
 		}
 	case reflect.String:
@@ -50,6 +61,7 @@ func setField(o *Onion, v reflect.Value, prefix, name string) {
 		if v.CanSet() {
 			v.SetFloat(o.GetFloat64Default(join(o.GetDelimiter(), prefix, name), v.Float()))
 		}
+
 	case reflect.Struct:
 		iterateConfig(o, v.Addr(), join(o.GetDelimiter(), prefix, name))
 	}
@@ -66,7 +78,6 @@ func iterateConfig(o *Onion, v reflect.Value, op string) {
 	if typ.Kind() != reflect.Struct {
 		return
 	}
-
 	// loop through the struct's fields and set the map
 	for i := 0; i < typ.NumField(); i++ {
 		p := typ.Field(i)

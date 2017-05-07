@@ -39,6 +39,7 @@ type structExample struct {
 	Universe string `onion:"key1"`
 	Key2     string
 	Key3     bool
+	Du       time.Duration
 
 	anonNested
 	nested      `onion:"nested"`
@@ -91,6 +92,7 @@ func TestOnion(t *testing.T) {
 		lm := &layerMock{}
 		lm.data = getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200.123), int64(100))
 		lm.data["nested"] = getMap("n", "a", 99, true)
+		lm.data["du"] = time.Minute
 		t1 := make(map[interface{}]interface{})
 		t1["str1"] = 1
 		t1["int64"] = int64(64)
@@ -226,6 +228,7 @@ func TestOnion(t *testing.T) {
 				Universe: "universe",
 				Key2:     "answer",
 				Key3:     true,
+				Du:       time.Minute,
 				anonNested: anonNested{
 					Key4:      20,
 					Key5:      200,

@@ -5,7 +5,6 @@
 [![GoDoc](https://godoc.org/gopkg.in/fzerorubigd/onion.v3?status.svg)](https://godoc.org/gopkg.in/fzerorubigd/onion.v3)
 [![Go Report Card](https://goreportcard.com/badge/gopkg.in/fzerorubigd/onion.v3)](https://goreportcard.com/report/gopkg.in/fzerorubigd/onion.v3)
 
---
 
 ```go
     import "gopkg.in/fzerorubigd/onion.v3"
@@ -53,7 +52,7 @@ Each config object can has more than one config layer. currently there is 3
 layer type is supported.
 
 
-Default layer
+#### Default layer
 
 This layer is special layer to set default for configs. usage is simple :
 
@@ -66,7 +65,7 @@ This layer must be added before all other layer, and defaults must be added
 before adding it to onion
 
 
-File layer
+#### File layer
 
 File layer is the basic one.
 
@@ -81,7 +80,7 @@ Also writing a new loader is very easy, just implement the FileLoader interface
 and call the RegisterLoader function with your loader object
 
 
-Folder layer
+#### Folder layer
 
 Folder layer is much like file layer but it get a folder and search for the
 first file with tha specific name and supported extension
@@ -94,7 +93,7 @@ the file name part is WHITOUT extension. library check for supported loader
 extension in that folder and return the first one.
 
 
-ENV layer
+#### ENV layer
 
 The other layer is env layer. this layer accept a whitelist of env variables and
 use them as value .
@@ -106,12 +105,12 @@ l := onion.NewEnvLayer("PORT", "STATIC_ROOT", "NEXT")
 this layer currently dose not support nested variables.
 
 
-YOUR layer
+#### YOUR layer
 
 Just implement the onion.Layer interface!
 
 
-Getting from config
+### Getting from config
 
 After adding layers to config, its easy to get the config values.
 
