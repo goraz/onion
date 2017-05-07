@@ -30,6 +30,10 @@ type nested struct {
 	F64 float64
 }
 
+type anonIgnored struct {
+	Six string
+}
+
 type structExample struct {
 	Key0     int
 	Universe string `onion:"key1"`
@@ -37,7 +41,8 @@ type structExample struct {
 	Key3     bool
 
 	anonNested
-	nested `onion:"nested"`
+	nested      `onion:"nested"`
+	anonIgnored `onion:"-"`
 
 	Another nested `onion:"nested"`
 
@@ -47,13 +52,15 @@ type structExample struct {
 type EmbededTest struct {
 	Operator   string `onion:"operator"`
 	Aggregator string `onion:"aggregator"`
+	Ignored    string `onion:"-"`
 }
 
 type Worker struct {
 	Inner struct {
 		Tmp2 int `onion:"tmp2"`
 		EmbededTest
-		Tmp int `onion:"tmp"`
+		Tmp     int    `onion:"tmp"`
+		Ignored string `onion:"-"`
 	} `onion:"inner"`
 }
 
@@ -306,6 +313,7 @@ func TestOnion(t *testing.T) {
 		So(cfg.Inner.Aggregator, ShouldEqual, "agg")
 		So(cfg.Inner.Tmp2, ShouldEqual, 101)
 		So(cfg.Inner.Tmp, ShouldEqual, 99)
+		So(cfg.Inner.Ignored, ShouldEqual, "")
 	})
 
 	Convey("test for register variables", t, func() {
