@@ -37,6 +37,7 @@ type layerList []singleLayer
 type variable struct {
 	key string
 	ref interface{}
+	def interface{}
 }
 
 // Onion is a layer base configuration system
@@ -427,98 +428,112 @@ func (o *Onion) GetStringSlice(key string) []string {
 	return nil
 }
 
-func (o *Onion) addRef(key string, ref interface{}) {
+func (o *Onion) addRef(key string, ref interface{}, def interface{}) {
 	o.refLock.Lock()
 	defer o.refLock.Unlock()
 
-	o.references = append(o.references, variable{key: key, ref: ref})
+	o.references = append(o.references, variable{key: key, ref: ref, def: def})
 }
 
 // RegisterInt return an int variable and set the value when the config is loaded
-func (o *Onion) RegisterInt(key string, def int) *int {
-	var v = def
-	o.addRef(key, &v)
+func (o *Onion) RegisterInt(key string, def int) Int {
+	var v = int64(def)
+	o.addRef(key, &v, def)
 
-	return &v
+	return intHolder{value: &v}
 }
 
 // RegisterInt64 return an int64 variable and set the value when the config is loaded
-func (o *Onion) RegisterInt64(key string, def int64) *int64 {
+func (o *Onion) RegisterInt64(key string, def int64) Int {
 	var v = def
-	o.addRef(key, &v)
+	o.addRef(key, &v, def)
 
-	return &v
+	return intHolder{value: &v}
 }
 
 // RegisterString return an string variable and set the value when the config is loaded
-func (o *Onion) RegisterString(key string, def string) *string {
+func (o *Onion) RegisterString(key string, def string) String {
 	var v = def
-	o.addRef(key, &v)
+	o.addRef(key, &v, def)
 
-	return &v
+	return stringHolder{value: &v}
 }
 
 // RegisterFloat64 return an float64 variable and set the value when the config is loaded
-func (o *Onion) RegisterFloat64(key string, def float64) *float64 {
+func (o *Onion) RegisterFloat64(key string, def float64) Float {
 	var v = def
-	o.addRef(key, &v)
+	o.addRef(key, &v, def)
 
-	return &v
+	return floatHolder{value: &v}
 }
 
 // RegisterFloat32 return an float32 variable and set the value when the config is loaded
-func (o *Onion) RegisterFloat32(key string, def float32) *float32 {
-	var v = def
-	o.addRef(key, &v)
+func (o *Onion) RegisterFloat32(key string, def float32) Float {
+	var v = float64(def)
+	o.addRef(key, &v, def)
 
-	return &v
+	return floatHolder{value: &v}
 }
 
 // RegisterBool return an bool variable and set the value when the config is loaded
-func (o *Onion) RegisterBool(key string, def bool) *bool {
+func (o *Onion) RegisterBool(key string, def bool) Bool {
 	var v = def
-	o.addRef(key, &v)
+	o.addRef(key, &v, def)
 
-	return &v
+	return boolHolder{value: &v}
 }
 
 // RegisterDuration return an duration variable and set the value when the config is loaded
-func (o *Onion) RegisterDuration(key string, def time.Duration) *time.Duration {
-	var v = def
-	o.addRef(key, &v)
+func (o *Onion) RegisterDuration(key string, def time.Duration) Int {
+	var v = int64(def)
+	o.addRef(key, &v, def)
 
-	return &v
+	return intHolder{value: &v}
 }
 
 // Load function is the new behavior of onion after version 3. after calling this all variables
 // registered with Registered* function are loaded.
+// this function is concurrent safe.
+// also this function had no effect on getting variables directly from config by Get* functions
 func (o *Onion) Load() {
 	o.refLock.RLock()
 	defer o.refLock.RUnlock()
 
+	// Make sure all variables are locked
+	// TODO : lock per onion instance
+	globalLock.Lock()
+	defer globalLock.Unlock()
+
 	for i := range o.references {
-		switch t := o.references[i].ref.(type) {
-		case *int:
-			v := o.GetIntDefault(o.references[i].key, *t)
+		switch def := o.references[i].def.(type) {
+		case int:
+			v := o.GetInt64Default(o.references[i].key, int64(def))
+			t := o.references[i].ref.(*int64)
 			*t = v
-		case *int64:
-			v := o.GetInt64Default(o.references[i].key, *t)
+		case int64:
+			v := o.GetInt64Default(o.references[i].key, def)
+			t := o.references[i].ref.(*int64)
 			*t = v
-		case *string:
-			v := o.GetStringDefault(o.references[i].key, *t)
+		case string:
+			v := o.GetStringDefault(o.references[i].key, def)
+			t := o.references[i].ref.(*string)
 			*t = v
-		case *float64:
-			v := o.GetFloat64Default(o.references[i].key, *t)
+		case float32:
+			v := o.GetFloat64Default(o.references[i].key, float64(def))
+			t := o.references[i].ref.(*float64)
 			*t = v
-		case *float32:
-			v := o.GetFloat32Default(o.references[i].key, *t)
+		case float64:
+			v := o.GetFloat64Default(o.references[i].key, def)
+			t := o.references[i].ref.(*float64)
 			*t = v
-		case *bool:
-			v := o.GetBoolDefault(o.references[i].key, *t)
+		case bool:
+			v := o.GetBoolDefault(o.references[i].key, def)
+			t := o.references[i].ref.(*bool)
 			*t = v
-		case *time.Duration:
-			v := o.GetDurationDefault(o.references[i].key, *t)
-			*t = v
+		case time.Duration:
+			v := o.GetDurationDefault(o.references[i].key, def)
+			t := o.references[i].ref.(*int64)
+			*t = int64(v)
 		}
 	}
 }

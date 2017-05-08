@@ -438,14 +438,14 @@ all variables registered with Registered* function are loaded.
 #### func (*Onion) RegisterBool
 
 ```go
-func (o *Onion) RegisterBool(key string, def bool) *bool
+func (o *Onion) RegisterBool(key string, def bool) Bool
 ```
 RegisterBool return an bool variable and set the value when the config is loaded
 
 #### func (*Onion) RegisterDuration
 
 ```go
-func (o *Onion) RegisterDuration(key string, def time.Duration) *time.Duration
+func (o *Onion) RegisterDuration(key string, def time.Duration) Int
 ```
 RegisterDuration return an duration variable and set the value when the config
 is loaded
@@ -453,7 +453,7 @@ is loaded
 #### func (*Onion) RegisterFloat32
 
 ```go
-func (o *Onion) RegisterFloat32(key string, def float32) *float32
+func (o *Onion) RegisterFloat32(key string, def float32) Float
 ```
 RegisterFloat32 return an float32 variable and set the value when the config is
 loaded
@@ -461,7 +461,7 @@ loaded
 #### func (*Onion) RegisterFloat64
 
 ```go
-func (o *Onion) RegisterFloat64(key string, def float64) *float64
+func (o *Onion) RegisterFloat64(key string, def float64) Float
 ```
 RegisterFloat64 return an float64 variable and set the value when the config is
 loaded
@@ -469,14 +469,14 @@ loaded
 #### func (*Onion) RegisterInt
 
 ```go
-func (o *Onion) RegisterInt(key string, def int) *int
+func (o *Onion) RegisterInt(key string, def int) Int
 ```
 RegisterInt return an int variable and set the value when the config is loaded
 
 #### func (*Onion) RegisterInt64
 
 ```go
-func (o *Onion) RegisterInt64(key string, def int64) *int64
+func (o *Onion) RegisterInt64(key string, def int64) Int
 ```
 RegisterInt64 return an int64 variable and set the value when the config is
 loaded
@@ -484,7 +484,7 @@ loaded
 #### func (*Onion) RegisterString
 
 ```go
-func (o *Onion) RegisterString(key string, def string) *string
+func (o *Onion) RegisterString(key string, def string) String
 ```
 RegisterString return an string variable and set the value when the config is
 loaded

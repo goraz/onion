@@ -336,19 +336,19 @@ func TestOnion(t *testing.T) {
 		def.SetDefault("test.float64", 100.11)
 		def.SetDefault("test.float32", 100.11)
 		def.SetDefault("test.bool", true)
-		def.SetDefault("test.duration", time.Second)
+		def.SetDefault("test.duration", "1s")
 
 		So(o.AddLayer(def), ShouldBeNil)
 
 		o.Load()
 
-		So(*intVar, ShouldEqual, 100)
-		So(*int64Var, ShouldEqual, 100)
-		So(*float64Var, ShouldEqual, 100.11)
-		So(*float32Var, ShouldEqual, 100.11)
-		So(*stringVar, ShouldEqual, "TEST_SET")
-		So(*boolVar, ShouldBeTrue)
-		So(*durationVar, ShouldEqual, time.Second)
+		So(intVar.Int(), ShouldEqual, 100)
+		So(int64Var.Int64(), ShouldEqual, 100)
+		So(float64Var.Float64(), ShouldEqual, 100.11)
+		So(float32Var.Float32(), ShouldEqual, 100.11)
+		So(stringVar.String(), ShouldEqual, "TEST_SET")
+		So(boolVar.Bool(), ShouldBeTrue)
+		So(durationVar.Duration(), ShouldEqual, time.Second)
 
 		o.Reset()
 		o.Load()
