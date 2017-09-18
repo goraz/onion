@@ -96,6 +96,8 @@ func TestOnion(t *testing.T) {
 		t1 := make(map[interface{}]interface{})
 		t1["str1"] = 1
 		t1["int64"] = int64(64)
+		t1["oct"] = "0777"
+		t1["hex"] = "0xf"
 		t1["str2"] = "hi"
 		t1["other"] = struct{}{}
 		t1["what"] = getMap("n", "a")
@@ -181,6 +183,8 @@ func TestOnion(t *testing.T) {
 
 			So(o.GetIntDefault("yes.str1", 0), ShouldEqual, 1)
 			So(o.GetFloat32Default("yes.int64", 0), ShouldEqual, 64)
+			So(o.GetInt64Default("yes.oct", 0), ShouldEqual, 511)
+			So(o.GetInt64Default("yes.hex", 0), ShouldEqual, 15)
 			So(o.GetStringDefault("yes.str2", ""), ShouldEqual, "hi")
 
 			So(o.GetStringDefault("yes.nested.str2", ""), ShouldEqual, "hi")

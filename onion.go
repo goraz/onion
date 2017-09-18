@@ -234,7 +234,17 @@ func (o *Onion) GetInt64Default(key string, def int64) int64 {
 	case string:
 		// Env is not typed and always is String, so try to convert it to int
 		// if possible
-		i, err := strconv.ParseInt(nv, 10, 64)
+		var i int64
+		var err error
+
+		if strings.HasPrefix(nv, "0x") {
+			i, err = strconv.ParseInt(nv[2:], 16, 64)
+		} else if strings.HasPrefix(nv, "0") {
+			i, err = strconv.ParseInt(nv, 8, 64)
+		} else {
+			i, err = strconv.ParseInt(nv, 10, 64)
+		}
+
 		if err != nil {
 			return def
 		}
