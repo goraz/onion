@@ -23,6 +23,14 @@ func TestExtraEnvLoader(t *testing.T) {
 			So(o.GetString(""), ShouldEqual, "")
 		})
 
+		o = New()
+		layer = NewExtraEnvLayer("")
+		o.AddLazyLayer(layer)
+		Convey("check data from no prefix env", func() {
+			os.Setenv("DATA_NESTED", "TDN")
+			So(o.GetString("data.nested"), ShouldEqual, "TDN")
+		})
+
 	})
 
 }
