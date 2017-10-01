@@ -1,9 +1,10 @@
-// Package extraenv is the loader from the os env using prefix.
-// for example for getting the test.path.key it check for PREFIX_TEST_PATH_KEY from the env
+// Package extraenv is the loader from the os env preceded by a prefix if set.
+// for example for getting the test.path.key it check for {PREFIX_}TEST_PATH_KEY from the env
 package extraenv
 
 import (
 	"os"
+	"math"
 	"strings"
 
 	"gopkg.in/fzerorubigd/onion.v3"
@@ -14,7 +15,7 @@ type envLoader struct {
 }
 
 func (el *envLoader) Get(path ...string) (interface{}, bool) {
-	p := el.prefix + "_" + strings.ToUpper(strings.Join(path, "_"))
+	p := el.prefix + strings.Repeat("_", int(math.Min(float64(len(el.prefix)), 1))) + strings.ToUpper(strings.Join(path, "_"))
 	v := os.Getenv(p)
 	if v != "" && len(p) > 0 {
 		return v, true
