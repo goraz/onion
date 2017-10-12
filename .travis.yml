@@ -3,7 +3,6 @@ dist: trusty
 go:
   - 1.8
   - 1.9
-  - tip
 before_install:
   - go get -v github.com/smartystreets/goconvey
   - go get -v github.com/axw/gocov/gocov
