@@ -1,6 +1,7 @@
 package onion
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -48,6 +49,9 @@ func setField(o *Onion, v reflect.Value, prefix, name string) {
 				return
 			}
 			v.SetInt(o.GetInt64Default(join(o.GetDelimiter(), prefix, name), v.Int()))
+		} else {
+			fmt.Printf("========>%T", v)
+			v.SetInt(33)
 		}
 	case reflect.String:
 		if v.CanSet() {

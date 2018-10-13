@@ -16,13 +16,13 @@ type layerMock struct {
 	data map[string]interface{}
 }
 
-type anonNested struct {
+type AnonNested struct {
 	Key4      int64
 	Key5      int64
 	Key5Again int `onion:"key5"`
 }
 
-type nested struct {
+type Nested struct {
 	N0  string
 	N1  int
 	N2  bool
@@ -30,7 +30,7 @@ type nested struct {
 	F64 float64
 }
 
-type anonIgnored struct {
+type AnonIgnored struct {
 	Six string
 }
 
@@ -41,11 +41,11 @@ type structExample struct {
 	Key3     bool
 	Du       time.Duration
 
-	anonNested
-	nested      `onion:"nested"`
-	anonIgnored `onion:"-"`
+	AnonNested
+	Nested      `onion:"nested"`
+	AnonIgnored `onion:"-"`
 
-	Another nested `onion:"nested"`
+	Another Nested `onion:"nested"`
 
 	Ignored string `onion:"-"`
 }
@@ -233,23 +233,25 @@ func TestOnion(t *testing.T) {
 				Key2:     "answer",
 				Key3:     true,
 				Du:       time.Minute,
-				anonNested: anonNested{
+				AnonNested: AnonNested{
 					Key4:      20,
 					Key5:      200,
 					Key5Again: 200,
 				},
-				nested: nested{
+				Nested: Nested{
 					N0: "a",
 					N1: 99,
 					N2: true,
 				},
-				Another: nested{
+				Another: Nested{
 					N0: "a",
 					N1: 99,
 					N2: true,
 				},
 				Ignored: "",
 			}
+			fmt.Printf("\n%+v\n", s)
+			fmt.Printf("%+v\n", ex)
 			So(reflect.DeepEqual(s, ex), ShouldBeTrue)
 			var tmp []string
 			o.GetStruct("", tmp)

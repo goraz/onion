@@ -11,7 +11,6 @@ before_install:
   - go get -v github.com/mattn/goveralls
   - go get -v github.com/hashicorp/consul/testutil
   - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
-  - go get -v github.com/hashicorp/consul
   - go get -v ./...
 script:
   - goveralls -v -service travis-ci -repotoken $COVERALLS_TOKEN || go test -v ./...
