@@ -10,40 +10,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type layerMock struct {
-	data map[string]interface{}
-}
-
-type anonNested struct {
-	Key4      int64
-	Key5      int64
-	Key5Again int `onion:"key5"`
-}
-
-type nested struct {
-	N0 string
-	N1 int
-	N2 bool
-}
-
-type structExample struct {
-	Key0     int
-	Universe string `onion:"key1"`
-	Key2     string
-	Key3     bool
-
-	anonNested
-	nested `onion:"nested"`
-
-	Another nested `onion:"nested"`
-
-	Ignored string `onion:"-"`
-}
-
-func (lm layerMock) Load() (map[string]interface{}, error) {
-	return lm.data, nil
-}
-
 func getMap(prefix string, s ...interface{}) map[string]interface{} {
 	tmp := make(map[string]interface{})
 	for i := range s {
@@ -54,9 +20,10 @@ func getMap(prefix string, s ...interface{}) map[string]interface{} {
 
 func TestOnion(t *testing.T) {
 	Convey("Onion basic functionality", t, func() {
-		lm := &layerMock{}
-		lm.data = getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200.123), int64(100))
-		lm.data["nested"] = getMap("n", "a", 99, true)
+		data := getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200.123), int64(100))
+		data["nested"] = getMap("n", "a", 99, true)
+
+		lm := NewMapLayer(data)
 		t1 := make(map[interface{}]interface{})
 		t1["str1"] = 1
 		t1["str2"] = "hi"
@@ -69,20 +36,21 @@ func TestOnion(t *testing.T) {
 		t1["nested"] = t2
 		t2[true] = false
 
-		lm.data["yes"] = t1
-		lm.data["slice1"] = []string{"a", "b", "c"}
-		lm.data["slice2"] = []interface{}{"a", "b", "c"}
-		lm.data["slice3"] = []interface{}{"a", "b", true}
-		lm.data["slice4"] = []int{1, 2, 3}
-		lm.data["ignored"] = "ignore me"
+		data["yes"] = t1
+		data["slice1"] = []string{"a", "b", "c"}
+		data["slice2"] = []interface{}{"a", "b", "c"}
+		data["slice3"] = []interface{}{"a", "b", true}
+		data["slice4"] = []int{1, 2, 3}
+		data["ignored"] = "ignore me"
 
-		lm.data["dur"] = time.Minute
-		lm.data["durstring"] = "1h2m3s"
-		lm.data["durstringinvalid"] = "ertyuiop"
-		lm.data["durint"] = 100000000
-		lm.data["durint64"] = int64(100000000)
-		lm.data["booldur"] = true
+		data["dur"] = time.Minute
+		data["durstring"] = "1h2m3s"
+		data["durstringinvalid"] = "ertyuiop"
+		data["durint"] = 100000000
+		data["durint64"] = int64(100000000)
+		data["booldur"] = true
 
+		lm = NewMapLayer(data)
 		o := New()
 		So(o.AddLayer(lm), ShouldBeNil)
 		Convey("Get direct variable", func() {
@@ -178,38 +146,6 @@ func TestOnion(t *testing.T) {
 			So(o.GetDelimiter(), ShouldEqual, ".")
 		})
 
-		Convey("delegate to structure", func() {
-			So(o.GetString("ignored"), ShouldEqual, "ignore me")
-			s := structExample{}
-			o.GetStruct("", &s)
-			ex := structExample{
-				Key0:     42,
-				Universe: "universe",
-				Key2:     "answer",
-				Key3:     true,
-				anonNested: anonNested{
-					Key4:      20,
-					Key5:      200,
-					Key5Again: 200,
-				},
-				nested: nested{
-					N0: "a",
-					N1: 99,
-					N2: true,
-				},
-				Another: nested{
-					N0: "a",
-					N1: 99,
-					N2: true,
-				},
-				Ignored: "",
-			}
-			So(reflect.DeepEqual(s, ex), ShouldBeTrue)
-			var tmp []string
-			o.GetStruct("", tmp)
-			So(tmp, ShouldBeNil)
-		})
-
 		Convey("slice test", func() {
 			So(reflect.DeepEqual(o.GetStringSlice("slice1"), []string{"a", "b", "c"}), ShouldBeTrue)
 			So(reflect.DeepEqual(o.GetStringSlice("slice2"), []string{"a", "b", "c"}), ShouldBeTrue)
@@ -221,12 +157,12 @@ func TestOnion(t *testing.T) {
 	})
 
 	Convey("Test layer overwrite", t, func() {
-		lm1 := &layerMock{getMap("test", 1, true)}
-		lm2 := &layerMock{getMap("test", 2, false)}
+		lm1 := NewMapLayer(getMap("test", 1, true))
+		lm2 := NewMapLayer(getMap("test", 2, false))
 		os.Setenv("TEST0", "3")
 		os.Setenv("TEST1", "True")
 		os.Setenv("TEST2", "INVALIDBOOL")
-		lm3 := NewEnvLayer("TEST0", "TEST1", "TEST2")
+		lm3 := NewEnvLayer("_", "TEST0", "TEST1", "TEST2")
 
 		o := New()
 		o.AddLayer(lm1)
@@ -244,7 +180,7 @@ func TestOnion(t *testing.T) {
 	Convey("test direct creation", t, func() {
 		o := &Onion{}
 		So(o.GetIntDefault("empty", 1000), ShouldEqual, 1000)
-		lm := &layerMock{getMap("test", 1, true)}
+		lm := NewMapLayer(getMap("test", 1, true))
 		o1 := &Onion{}
 		o1.AddLayer(lm)
 		So(o1.GetIntDefault("test0", 0), ShouldEqual, 1)
@@ -275,19 +211,12 @@ func BenchmarkOion(b *testing.B) {
 	}
 }
 
-func BenchmarkStruct(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		s := structExample{}
-		benconion.GetStruct("", &s)
-	}
-}
-
 var benconion = New()
 
 func init() {
-	lm := &layerMock{}
-	lm.data = getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200), int64(100))
-	lm.data["nested"] = getMap("n", "a", 99, true)
+
+	data := getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200), int64(100))
+	data["nested"] = getMap("n", "a", 99, true)
 	t1 := make(map[interface{}]interface{})
 	t1["str1"] = 1
 	t1["str2"] = "hi"
@@ -300,19 +229,19 @@ func init() {
 	t1["nested"] = t2
 	t2[true] = false
 
-	lm.data["yes"] = t1
-	lm.data["slice1"] = []string{"a", "b", "c"}
-	lm.data["slice2"] = []interface{}{"a", "b", "c"}
-	lm.data["slice3"] = []interface{}{"a", "b", true}
-	lm.data["slice4"] = []int{1, 2, 3}
-	lm.data["ignored"] = "ignore me"
+	data["yes"] = t1
+	data["slice1"] = []string{"a", "b", "c"}
+	data["slice2"] = []interface{}{"a", "b", "c"}
+	data["slice3"] = []interface{}{"a", "b", true}
+	data["slice4"] = []int{1, 2, 3}
+	data["ignored"] = "ignore me"
 
-	lm.data["dur"] = time.Minute
-	lm.data["durstring"] = "1h2m3s"
-	lm.data["durstringinvalid"] = "ertyuiop"
-	lm.data["durint"] = 100000000
-	lm.data["durint64"] = int64(100000000)
-	lm.data["booldur"] = true
+	data["dur"] = time.Minute
+	data["durstring"] = "1h2m3s"
+	data["durstringinvalid"] = "ertyuiop"
+	data["durint"] = 100000000
+	data["durint64"] = int64(100000000)
+	data["booldur"] = true
 
-	benconion.AddLayer(lm)
+	benconion.AddLayer(NewMapLayer(data))
 }
