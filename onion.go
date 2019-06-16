@@ -195,7 +195,7 @@ func (o *Onion) GetBoolDefault(key string, def bool) bool {
 
 	switch nv := v.(type) {
 	case string:
-		// Env is not typed and always is String, so try to convert it to int
+		// Env is not typed and always is String, so try to convert it to boolean
 		// if possible
 		i, err := strconv.ParseBool(nv)
 		if err != nil {
