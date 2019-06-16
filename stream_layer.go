@@ -35,18 +35,20 @@ func (jd *jsonDecoder) Decode(r io.Reader) (map[string]interface{}, error) {
 }
 
 // RegisterDecoder add a new decoder to the system, json is registered out of the box
-func RegisterDecoder(typ string, dec Decoder) {
+func RegisterDecoder(dec Decoder, typ ...string) {
 	decLock.Lock()
 	defer decLock.Unlock()
 
-	decoders[strings.ToLower(typ)] = dec
+	for i := range typ {
+		decoders[strings.ToLower(typ[i])] = dec
+	}
 }
 
 // NewStreamLayer returns a layer based on a io.Reader stream
 func NewStreamLayer(stream io.Reader, format string) (Layer, error) {
 	decLock.RLock()
 	defer decLock.RUnlock()
-	
+
 	dec, ok := decoders[strings.ToLower(format)]
 	if !ok {
 		return nil, fmt.Errorf("there is no decoder for %q", format)

@@ -36,6 +36,7 @@ func NewEnvLayer(separator string, whiteList ...string) Layer {
 }
 
 // NewEnvLayerPrefix create new env layer, with all values with the same prefix
+// TODO: No prefix loading
 func NewEnvLayerPrefix(separator string, prefix string) Layer {
 	var data map[string]interface{}
 	pf := strings.ToUpper(prefix) + separator

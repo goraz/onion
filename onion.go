@@ -10,6 +10,8 @@ import (
 	"github.com/imdario/mergo"
 )
 
+// TODO: use cast (spf13/cast)
+
 // Layer is an interface to handle the load phase.
 type Layer interface {
 	// Load must return a map of config value, it is called after loading the onion
@@ -259,11 +261,15 @@ func (o *Onion) getSlice(key string) (interface{}, bool) {
 	return v, true
 }
 
-// GetStringSlice try to get a slice from the config
+// GetStringSlice try to get a slice from the config, also it support comma separated value
+// if there is no array at the key.
 func (o *Onion) GetStringSlice(key string) []string {
 	var ok bool
 	v, ok := o.getSlice(key)
 	if !ok {
+		if v := o.GetString(key); len(v) > 0 {
+			return strings.Split(v, ",")
+		}
 		return nil
 	}
 
