@@ -6,16 +6,14 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/imdario/mergo"
 )
 
 // Layer is an interface to handle the load phase.
 type Layer interface {
-	// Reload return true if there is a change in the data
-	Reload() (bool, error)
-
-	// Get should return the key, each call is only for one key. for example Get(foo, bar) means the key
-	// bar inside the root key foo
-	Get(...string) (interface{}, bool)
+	// Load must return a map of config value, it is called after loading the onion
+	Load() (map[string]interface{}, error)
 }
 
 type layerList []Layer
@@ -26,21 +24,8 @@ type Onion struct {
 	delimiter string
 	ll        layerList
 
-	// Cache for a layer, should change after reload
-	cache map[string]interface{}
-}
-
-func (o *Onion) setCache(key string, val interface{}) {
-	if o.cache == nil {
-		o.cache = make(map[string]interface{})
-	}
-
-	o.cache[key] = val
-}
-
-func (o *Onion) getCache(key string) (interface{}, bool) {
-	v, ok := o.cache[key]
-	return v, ok
+	// Merged version of all data
+	data map[string]interface{}
 }
 
 // AddLayer add a new layer to the end of config layers. last layer is loaded after all other
@@ -50,10 +35,16 @@ func (o *Onion) AddLayer(l Layer) error {
 	defer o.lock.Unlock()
 
 	o.ll = append(o.ll, l)
-	// reset the cache
-	o.cache = make(map[string]interface{})
+	if o.data == nil {
+		o.data = make(map[string]interface{})
+	}
 
-	return nil
+	data, err := l.Load()
+	if err != nil {
+		return err
+	}
+
+	return mergo.Merge(&o.data, data, mergo.WithOverride)
 }
 
 // GetDelimiter return the delimiter for nested key
@@ -75,19 +66,8 @@ func (o *Onion) Get(key string) (interface{}, bool) {
 	o.lock.RLock()
 	defer o.lock.RUnlock()
 
-	if v, b := o.getCache(key); b {
-		return v, true
-	}
-
 	path := strings.Split(key, o.GetDelimiter())
-	for i := len(o.ll); i > 0; i-- {
-		if v, b := o.ll[i-1].Get(path...); b {
-			o.setCache(key, v)
-			return v, true
-		}
-	}
-
-	return nil, false
+	return searchStringMap(o.data, path...)
 }
 
 // GetIntDefault return an int value from Onion, if the value is not exists or its not an
@@ -304,11 +284,22 @@ func (o *Onion) GetStringSlice(key string) []string {
 }
 
 // New return a new Onion
-func New(layers ...Layer) *Onion {
+func New() *Onion {
 	return &Onion{
 		lock:      sync.RWMutex{},
 		delimiter: ".",
-		cache:     make(map[string]interface{}),
-		ll:        layers,
 	}
+}
+
+// NewWithLayer return an onion with some layer
+func NewWithLayer(layers ...Layer) (*Onion, error) {
+	o := New()
+	for i := range layers {
+		err := o.AddLayer(layers[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return o, nil
 }
