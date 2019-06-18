@@ -51,8 +51,7 @@ func TestOnion(t *testing.T) {
 		data["booldur"] = true
 
 		lm = NewMapLayer(data)
-		o := New()
-		So(o.AddLayer(lm), ShouldBeNil)
+		o := New(lm)
 		Convey("Get direct variable", func() {
 			So(o.GetInt("key0"), ShouldEqual, 42)
 			So(o.GetString("key1"), ShouldEqual, "universe")
@@ -164,14 +163,13 @@ func TestOnion(t *testing.T) {
 		os.Setenv("TEST2", "INVALIDBOOL")
 		lm3 := NewEnvLayer("_", "TEST0", "TEST1", "TEST2")
 
-		o := New()
-		o.AddLayer(lm1)
+		o := New(lm1)
 		So(o.GetInt64Default("test0", 0), ShouldEqual, 1)
 		So(o.GetBoolDefault("test1", false), ShouldBeTrue)
-		o.AddLayer(lm2)
+		o.AddLayers(lm2)
 		So(o.GetInt64Default("test0", 0), ShouldEqual, 2)
 		So(o.GetBoolDefault("test1", true), ShouldBeFalse)
-		o.AddLayer(lm3) // Special case in ENV loader
+		o.AddLayers(lm3) // Special case in ENV loader
 		So(o.GetInt64Default("test0", 0), ShouldEqual, 3)
 		So(o.GetBoolDefault("test1", false), ShouldBeTrue)
 		So(o.GetBoolDefault("test2", false), ShouldBeFalse)
@@ -182,7 +180,7 @@ func TestOnion(t *testing.T) {
 		So(o.GetIntDefault("empty", 1000), ShouldEqual, 1000)
 		lm := NewMapLayer(getMap("test", 1, true))
 		o1 := &Onion{}
-		o1.AddLayer(lm)
+		o1.AddLayers(lm)
 		So(o1.GetIntDefault("test0", 0), ShouldEqual, 1)
 	})
 }
@@ -243,5 +241,5 @@ func init() {
 	data["durint64"] = int64(100000000)
 	data["booldur"] = true
 
-	benconion.AddLayer(NewMapLayer(data))
+	benconion.AddLayers(NewMapLayer(data))
 }

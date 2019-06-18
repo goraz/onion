@@ -7,46 +7,129 @@ import (
 	"sync"
 	"time"
 
-	"github.com/imdario/mergo"
+	"github.com/fzerorubigd/gozin"
 )
 
 // TODO: use cast (spf13/cast)
 
 // Layer is an interface to handle the load phase.
 type Layer interface {
-	// Load must return a map of config value, it is called after loading the onion
-	Load() (map[string]interface{}, error)
+	// Load is called as soon as the layer registered in the onion. if the layer is persistent
+	// it can close the channel as soon as it writes the first configuration.
+	// Also this function may called several time and should return the same channel each time
+	// and should not block
+	Load() <-chan map[string]interface{}
 }
-
-type layerList []Layer
 
 // Onion is a layer base configuration system
 type Onion struct {
-	lock      sync.RWMutex
-	delimiter string
-	ll        layerList
+	lock sync.RWMutex
 
-	// Merged version of all data
-	data map[string]interface{}
+	delimiter string
+	ll        []Layer
+
+	// List of watches
+	watches []gozin.Case
+	noWatch map[Layer]bool
+	stop    chan struct{}
+
+	// Loaded data
+	data map[Layer]map[string]interface{}
+}
+
+func (o *Onion) createSelectCase() []gozin.Case {
+	o.lock.RLock()
+	defer o.lock.RUnlock()
+
+	var c []gozin.Case
+
+	for i := range o.ll {
+		if o.noWatch[o.ll[i]] {
+			continue
+		}
+		l := o.ll[i]
+		c = append(c,
+			gozin.Receive(l.Load(), func(in interface{}, b bool) {
+				if !b {
+					o.closeLayerWatch(l)
+					return
+				}
+				o.setLayerData(l, in.(map[string]interface{}))
+			}))
+	}
+
+	return c
+}
+
+func (o *Onion) watchLayers(stop chan struct{}, loaded chan struct{}) {
+	var (
+		// done means the stop channel is closed
+		done bool
+	)
+
+	var stable bool
+	def := gozin.Default(func() {
+		stable = true
+		close(loaded)
+	})
+	for !done {
+		c := o.createSelectCase()
+		if len(c) == 0 {
+			// Nothing to watch
+			break
+		}
+		c = append(c, gozin.Receive(stop, func(_ interface{}, c bool) {
+			done = !c
+		}))
+		if !stable {
+			c = append(c, def)
+		}
+		if err := gozin.Select(c...); err != nil {
+			panic(err)
+		}
+	}
+	if !stable {
+		close(loaded)
+	}
+}
+
+func (o *Onion) setLayerData(l Layer, data map[string]interface{}) {
+	o.lock.Lock()
+	defer o.lock.Unlock()
+	if o.data == nil {
+		o.data = make(map[Layer]map[string]interface{})
+	}
+	o.data[l] = data
+}
+
+func (o *Onion) closeLayerWatch(l Layer) {
+	o.lock.Lock()
+	defer o.lock.Unlock()
+	if o.noWatch == nil {
+		o.noWatch = make(map[Layer]bool)
+	}
+	o.noWatch[l] = true
 }
 
 // AddLayer add a new layer to the end of config layers. last layer is loaded after all other
 // layer
-func (o *Onion) AddLayer(l Layer) error {
+func (o *Onion) AddLayers(l ...Layer) {
+	if len(l) == 0 {
+		return
+	}
 	o.lock.Lock()
-	defer o.lock.Unlock()
-
-	o.ll = append(o.ll, l)
-	if o.data == nil {
-		o.data = make(map[string]interface{})
+	o.ll = append(o.ll, l...)
+	// close the old go routine
+	if o.stop != nil {
+		close(o.stop)
 	}
 
-	data, err := l.Load()
-	if err != nil {
-		return err
-	}
+	o.stop = make(chan struct{})
+	o.lock.Unlock()
 
-	return mergo.Merge(&o.data, data, mergo.WithOverride)
+	loaded := make(chan struct{})
+	go o.watchLayers(o.stop, loaded)
+	<-loaded
 }
 
 // GetDelimiter return the delimiter for nested key
@@ -69,7 +152,14 @@ func (o *Onion) Get(key string) (interface{}, bool) {
 	defer o.lock.RUnlock()
 
 	path := strings.Split(key, o.GetDelimiter())
-	return searchStringMap(o.data, path...)
+
+	for i := len(o.ll); i > 0; i-- {
+		v, ok := searchStringMap(o.data[o.ll[i-1]], path...)
+		if ok {
+			return v, ok
+		}
+	}
+	return nil, false
 }
 
 // GetIntDefault return an int value from Onion, if the value is not exists or its not an
@@ -290,22 +380,9 @@ func (o *Onion) GetStringSlice(key string) []string {
 }
 
 // New return a new Onion
-func New() *Onion {
-	return &Onion{
-		lock:      sync.RWMutex{},
-		delimiter: ".",
-	}
-}
+func New(layers ...Layer) *Onion {
+	o := &Onion{}
 
-// NewWithLayer return an onion with some layer
-func NewWithLayer(layers ...Layer) (*Onion, error) {
-	o := New()
-	for i := range layers {
-		err := o.AddLayer(layers[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return o, nil
+	o.AddLayers(layers...)
+	return o
 }

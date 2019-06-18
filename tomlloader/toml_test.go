@@ -22,16 +22,12 @@ func TestYamlLoader(t *testing.T) {
 		Convey("Check if the file is loaded correctly ", func() {
 			fl, err := NewStreamLayer(buf, "toml")
 			So(err, ShouldBeNil)
-			o := New()
-			err = o.AddLayer(fl)
-			So(err, ShouldBeNil)
+			o := New(fl)
 			So(o.GetStringDefault("str", ""), ShouldEqual, "string_data")
 			So(o.GetStringDefault("nested.key1", ""), ShouldEqual, "string")
 			So(o.GetIntDefault("nested.key2", 0), ShouldEqual, 100)
 			So(o.GetBoolDefault("bool", false), ShouldBeTrue)
 
-			a := New() // Just for test load again
-			So(a.AddLayer(fl), ShouldBeNil)
 		})
 
 		Convey("Check for the invalid file content", func() {

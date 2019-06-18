@@ -12,13 +12,11 @@ func TestNewEnvLayer(t *testing.T) {
 
 		os.Setenv("KEY_TEST_SEP", "1")
 		l := NewEnvLayer("_", "KEY_TEST_SEP")
-		o, err := NewWithLayer(l)
-		So(err, ShouldBeNil)
+		o := New(l)
 		So(o.GetInt("key.test.sep"), ShouldEqual, 1)
 
 		l2 := NewEnvLayerPrefix("_", "key")
-		o2, err := NewWithLayer(l2)
-		So(err, ShouldBeNil)
+		o2 := New(l2)
 		So(o2.GetInt("test.sep"), ShouldEqual, 1)
 	})
 }

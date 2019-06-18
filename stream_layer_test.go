@@ -23,8 +23,7 @@ func TestNewStreamLayer(t *testing.T) {
 		buf := bytes.NewBufferString(validJSON)
 		l, err := NewStreamLayer(buf, "json")
 		So(err, ShouldBeNil)
-		o, err := NewWithLayer(l)
-		So(err, ShouldBeNil)
+		o := New(l)
 		So(o.GetString("string"), ShouldEqual, "str")
 		So(o.GetInt("number"), ShouldEqual, 100)
 		So(o.GetBool("nested.bool"), ShouldBeTrue)
@@ -42,15 +41,14 @@ func (d *dummyDecoder) Decode(io.Reader) (map[string]interface{}, error) {
 
 func TestRegisterDecoder(t *testing.T) {
 	Convey("Test dummy decoder", t, func() {
-		RegisterDecoder("dummy", &dummyDecoder{
+		RegisterDecoder(&dummyDecoder{
 			data: map[string]interface{}{
 				"hi": 10,
 			},
-		})
+		}, "dummy")
 		l, err := NewStreamLayer(nil, "dummy")
 		So(err, ShouldBeNil)
-		o, err := NewWithLayer(l)
-		So(err, ShouldBeNil)
+		o := New(l)
 		So(o.GetInt("hi"), ShouldEqual, 10)
 	})
 
