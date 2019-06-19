@@ -30,7 +30,7 @@ func TestNewFileWatchLayerContext(t *testing.T) {
 
 		So(cfg.Close(), ShouldBeNil)
 		So(writeJson(fl, map[string]interface{}{"hi": 100}), ShouldBeNil)
-		l, err := NewFileWatchLayer(fl)
+		l, err := NewFileWatchLayer(fl, nil)
 		o := onion.New(l)
 		So(o.GetInt("hi"), ShouldEqual, 100)
 		So(writeJson(fl, map[string]interface{}{"hi": 200}), ShouldBeNil)

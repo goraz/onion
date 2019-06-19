@@ -20,7 +20,7 @@ func TestYamlLoader(t *testing.T) {
 `)
 		bufInvalid := bytes.NewBufferString(`invalid toml file`)
 		Convey("Check if the file is loaded correctly ", func() {
-			fl, err := NewStreamLayer(buf, "toml")
+			fl, err := NewStreamLayer(buf, "toml", nil)
 			So(err, ShouldBeNil)
 			o := New(fl)
 			So(o.GetStringDefault("str", ""), ShouldEqual, "string_data")
@@ -31,7 +31,7 @@ func TestYamlLoader(t *testing.T) {
 		})
 
 		Convey("Check for the invalid file content", func() {
-			_, err := NewStreamLayer(bufInvalid, "toml")
+			_, err := NewStreamLayer(bufInvalid, "toml", nil)
 			So(err, ShouldNotBeNil)
 		})
 	})

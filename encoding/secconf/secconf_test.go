@@ -17,7 +17,7 @@ func TestEncoding(t *testing.T) {
 		if err != nil {
 			t.Errorf(err.Error())
 		}
-		decoded, err := Decode(encoded, bytes.NewBufferString(secring))
+		decoded, err := Decode(bytes.NewReader(encoded), bytes.NewBufferString(secring))
 		if err != nil {
 			t.Errorf(err.Error())
 		}

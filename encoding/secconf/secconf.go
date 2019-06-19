@@ -16,8 +16,8 @@ import (
 )
 
 // Decode decodes data using the secconf codec.
-func Decode(data []byte, secretKeyring io.Reader) ([]byte, error) {
-	decoder := base64.NewDecoder(base64.StdEncoding, bytes.NewBuffer(data))
+func Decode(data io.Reader, secretKeyring io.Reader) ([]byte, error) {
+	decoder := base64.NewDecoder(base64.StdEncoding, data)
 	entityList, err := openpgp.ReadArmoredKeyRing(secretKeyring)
 	if err != nil {
 		return nil, err

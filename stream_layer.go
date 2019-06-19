@@ -1,6 +1,7 @@
 package onion
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -18,6 +19,11 @@ var (
 	}
 )
 
+// Cipher is used to decrypt data on loading
+type Cipher interface {
+	Decrypt(io.Reader) ([]byte, error)
+}
+
 // Decoder is a stream decoder to convert a stream into a map of config keys, json is supported out of
 // the box
 type Decoder interface {
@@ -27,10 +33,21 @@ type Decoder interface {
 type jsonDecoder struct {
 }
 
+func decrypt(c Cipher, r io.Reader) (io.Reader, error) {
+	if c == nil {
+		return r, nil
+	}
+	b, err := c.Decrypt(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewReader(b), nil
+}
+
 func (jd *jsonDecoder) Decode(_ context.Context, r io.Reader) (map[string]interface{}, error) {
 	var data map[string]interface{}
-	err := json.NewDecoder(r).Decode(&data)
-	if err != nil {
+	if err := json.NewDecoder(r).Decode(&data); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +74,8 @@ func GetDecoder(format string) Decoder {
 }
 
 type streamLayer struct {
-	c chan map[string]interface{}
+	c      chan map[string]interface{}
+	cipher Cipher
 }
 
 func (sl *streamLayer) Load() map[string]interface{} {
@@ -73,7 +91,12 @@ func (sl *streamLayer) Reload(ctx context.Context, r io.Reader, format string) e
 	if dec == nil {
 		return fmt.Errorf("format %q is not registered", format)
 	}
-	data, err := dec.Decode(ctx, r)
+	dr, err := decrypt(sl.cipher, r)
+	if err != nil {
+		return err
+	}
+
+	data, err := dec.Decode(ctx, dr)
 	if err != nil {
 		return err
 	}
@@ -88,9 +111,13 @@ func (sl *streamLayer) Reload(ctx context.Context, r io.Reader, format string) e
 	return nil
 }
 
-func NewStreamLayerContext(ctx context.Context, r io.Reader, format string) (Layer, error) {
+// NewStreamLayerContext try to create a layer based on a stream, the format should be a registered
+// format (see RegisterDecoder) and if the Cipher is not nil, it pass data to cipher first.
+// A nil cipher is accepted as plain cipher
+func NewStreamLayerContext(ctx context.Context, r io.Reader, format string, c Cipher) (Layer, error) {
 	sl := &streamLayer{
-		c: make(chan map[string]interface{}),
+		c:      make(chan map[string]interface{}),
+		cipher: c,
 	}
 
 	err := sl.Reload(ctx, r, format)
@@ -101,11 +128,11 @@ func NewStreamLayerContext(ctx context.Context, r io.Reader, format string) (Lay
 	return sl, nil
 }
 
-func NewStreamLayer(r io.Reader, format string) (Layer, error) {
-	return NewStreamLayerContext(context.Background(), r, format)
+func NewStreamLayer(r io.Reader, format string, c Cipher) (Layer, error) {
+	return NewStreamLayerContext(context.Background(), r, format, c)
 }
 
-func NewFileLayerContext(ctx context.Context, path string) (Layer, error) {
+func NewFileLayerContext(ctx context.Context, path string, c Cipher) (Layer, error) {
 	ext := strings.TrimPrefix(filepath.Ext(path), ".")
 	f, err := os.Open(path)
 	if err != nil {
@@ -113,9 +140,9 @@ func NewFileLayerContext(ctx context.Context, path string) (Layer, error) {
 	}
 	defer func() { _ = f.Close() }()
 
-	return NewStreamLayerContext(ctx, f, ext)
+	return NewStreamLayerContext(ctx, f, ext, c)
 }
 
-func NewFileLayer(path string) (Layer, error) {
-	return NewFileLayerContext(context.Background(), path)
+func NewFileLayer(path string, c Cipher) (Layer, error) {
+	return NewFileLayerContext(context.Background(), path, c)
 }
