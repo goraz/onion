@@ -10,6 +10,7 @@
 package yamlloader
 
 import (
+	"context"
 	"io"
 
 	"gopkg.in/yaml.v2"
@@ -20,7 +21,7 @@ import (
 type yamlLoader struct {
 }
 
-func (yl yamlLoader) Decode(r io.Reader) (map[string]interface{}, error) {
+func (yl yamlLoader) Decode(_ context.Context, r io.Reader) (map[string]interface{}, error) {
 	ret := make(map[string]interface{})
 	err := yaml.NewDecoder(r).Decode(&ret)
 	if err != nil {

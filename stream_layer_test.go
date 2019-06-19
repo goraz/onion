@@ -2,6 +2,7 @@ package onion
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"testing"
 
@@ -35,7 +36,7 @@ type dummyDecoder struct {
 	err  error
 }
 
-func (d *dummyDecoder) Decode(io.Reader) (map[string]interface{}, error) {
+func (d *dummyDecoder) Decode(context.Context, io.Reader) (map[string]interface{}, error) {
 	return d.data, d.err
 }
 

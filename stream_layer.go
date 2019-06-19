@@ -1,9 +1,12 @@
 package onion
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -18,13 +21,13 @@ var (
 // Decoder is a stream decoder to convert a stream into a map of config keys, json is supported out of
 // the box
 type Decoder interface {
-	Decode(io.Reader) (map[string]interface{}, error)
+	Decode(context.Context, io.Reader) (map[string]interface{}, error)
 }
 
 type jsonDecoder struct {
 }
 
-func (jd *jsonDecoder) Decode(r io.Reader) (map[string]interface{}, error) {
+func (jd *jsonDecoder) Decode(_ context.Context, r io.Reader) (map[string]interface{}, error) {
 	var data map[string]interface{}
 	err := json.NewDecoder(r).Decode(&data)
 	if err != nil {
@@ -44,20 +47,75 @@ func RegisterDecoder(dec Decoder, typ ...string) {
 	}
 }
 
-// NewStreamLayer returns a layer based on a io.Reader stream
-func NewStreamLayer(stream io.Reader, format string) (Layer, error) {
+// GetDecoder returns the decoder based on its name, it may returns nil if the decoder is not
+// registered
+func GetDecoder(format string) Decoder {
 	decLock.RLock()
 	defer decLock.RUnlock()
 
-	dec, ok := decoders[strings.ToLower(format)]
-	if !ok {
-		return nil, fmt.Errorf("there is no decoder for %q", format)
+	return decoders[strings.ToLower(format)]
+}
+
+type streamLayer struct {
+	c chan map[string]interface{}
+}
+
+func (sl *streamLayer) Load() map[string]interface{} {
+	return <-sl.c
+}
+
+func (sl *streamLayer) Watch() <-chan map[string]interface{} {
+	return sl.c
+}
+
+func (sl *streamLayer) Reload(ctx context.Context, r io.Reader, format string) error {
+	dec := GetDecoder(format)
+	if dec == nil {
+		return fmt.Errorf("format %q is not registered", format)
+	}
+	data, err := dec.Decode(ctx, r)
+	if err != nil {
+		return err
 	}
 
-	data, err := dec.Decode(stream)
+	go func() {
+		select {
+		case sl.c <- data:
+		case <-ctx.Done():
+		}
+	}()
+
+	return nil
+}
+
+func NewStreamLayerContext(ctx context.Context, r io.Reader, format string) (Layer, error) {
+	sl := &streamLayer{
+		c: make(chan map[string]interface{}),
+	}
+
+	err := sl.Reload(ctx, r, format)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewMapLayer(data), nil
+	return sl, nil
+}
+
+func NewStreamLayer(r io.Reader, format string) (Layer, error) {
+	return NewStreamLayerContext(context.Background(), r, format)
+}
+
+func NewFileLayerContext(ctx context.Context, path string) (Layer, error) {
+	ext := strings.TrimPrefix(filepath.Ext(path), ".")
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = f.Close() }()
+
+	return NewStreamLayerContext(ctx, f, ext)
+}
+
+func NewFileLayer(path string) (Layer, error) {
+	return NewFileLayerContext(context.Background(), path)
 }

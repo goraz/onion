@@ -1,24 +1,23 @@
 package onion
 
 import (
+	"context"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/fzerorubigd/gozin"
 )
-
-// TODO: use cast (spf13/cast)
 
 // Layer is an interface to handle the load phase.
 type Layer interface {
-	// Load is called as soon as the layer registered in the onion. if the layer is persistent
-	// it can close the channel as soon as it writes the first configuration.
+	// Load is called once to get the initial data, it can return nil if there is no initial data
+	Load() map[string]interface{}
+	// Watch is called as soon as the layer registered in the onion. if the layer is persistent
+	// it can return nil or a closed channel
 	// Also this function may called several time and should return the same channel each time
 	// and should not block
-	Load() <-chan map[string]interface{}
+	Watch() <-chan map[string]interface{}
 }
 
 // Onion is a layer base configuration system
@@ -28,108 +27,62 @@ type Onion struct {
 	delimiter string
 	ll        []Layer
 
-	// List of watches
-	watches []gozin.Case
-	noWatch map[Layer]bool
-	stop    chan struct{}
+	stop chan struct{}
 
 	// Loaded data
 	data map[Layer]map[string]interface{}
 }
 
-func (o *Onion) createSelectCase() []gozin.Case {
-	o.lock.RLock()
-	defer o.lock.RUnlock()
-
-	var c []gozin.Case
-
-	for i := range o.ll {
-		if o.noWatch[o.ll[i]] {
-			continue
-		}
-		l := o.ll[i]
-		c = append(c,
-			gozin.Receive(l.Load(), func(in interface{}, b bool) {
-				if !b {
-					o.closeLayerWatch(l)
-					return
-				}
-				o.setLayerData(l, in.(map[string]interface{}))
-			}))
+func (o *Onion) watchLayer(ctx context.Context, l Layer) {
+	c := l.Watch()
+	if c == nil {
+		return
 	}
-
-	return c
-}
-
-func (o *Onion) watchLayers(stop chan struct{}, loaded chan struct{}) {
-	var (
-		// done means the stop channel is closed
-		done bool
-	)
-
-	var stable bool
-	def := gozin.Default(func() {
-		stable = true
-		close(loaded)
-	})
-	for !done {
-		c := o.createSelectCase()
-		if len(c) == 0 {
-			// Nothing to watch
-			break
+	for {
+		select {
+		case data, ok := <-c:
+			if !ok {
+				return
+			}
+			o.setLayerData(l, data)
+		case <-ctx.Done():
+			return
 		}
-		c = append(c, gozin.Receive(stop, func(_ interface{}, c bool) {
-			done = !c
-		}))
-		if !stable {
-			c = append(c, def)
-		}
-		if err := gozin.Select(c...); err != nil {
-			panic(err)
-		}
-	}
-	if !stable {
-		close(loaded)
 	}
 }
 
 func (o *Onion) setLayerData(l Layer, data map[string]interface{}) {
 	o.lock.Lock()
 	defer o.lock.Unlock()
+
 	if o.data == nil {
 		o.data = make(map[Layer]map[string]interface{})
 	}
 	o.data[l] = data
 }
 
-func (o *Onion) closeLayerWatch(l Layer) {
-	o.lock.Lock()
-	defer o.lock.Unlock()
-	if o.noWatch == nil {
-		o.noWatch = make(map[Layer]bool)
-	}
-	o.noWatch[l] = true
-}
-
 // AddLayer add a new layer to the end of config layers. last layer is loaded after all other
 // layer
-func (o *Onion) AddLayers(l ...Layer) {
+func (o *Onion) AddLayersContext(ctx context.Context, l ...Layer) {
 	if len(l) == 0 {
 		return
 	}
 	o.lock.Lock()
 	o.ll = append(o.ll, l...)
 	// close the old go routine
-	if o.stop != nil {
-		close(o.stop)
+	if o.stop == nil {
+		o.stop = make(chan struct{})
 	}
-
-	o.stop = make(chan struct{})
 	o.lock.Unlock()
 
-	loaded := make(chan struct{})
-	go o.watchLayers(o.stop, loaded)
-	<-loaded
+	for i := range l {
+		o.setLayerData(l[i], l[i].Load())
+		go o.watchLayer(ctx, l[i])
+	}
+}
+
+func (o *Onion) AddLayers(l ...Layer) {
+	o.AddLayersContext(context.Background(), l...)
 }
 
 // GetDelimiter return the delimiter for nested key
@@ -379,10 +332,15 @@ func (o *Onion) GetStringSlice(key string) []string {
 	return nil
 }
 
-// New return a new Onion
-func New(layers ...Layer) *Onion {
+// NewContext return a new Onion, context is used for watch
+func NewContext(ctx context.Context, layers ...Layer) *Onion {
 	o := &Onion{}
 
-	o.AddLayers(layers...)
+	o.AddLayersContext(ctx, layers...)
 	return o
+}
+
+// New returns a new onion
+func New(layers ...Layer) *Onion {
+	return NewContext(context.Background(), layers...)
 }

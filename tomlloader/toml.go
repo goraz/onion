@@ -10,6 +10,7 @@
 package tomlloader
 
 import (
+	"context"
 	"io"
 
 	"github.com/BurntSushi/toml"
@@ -20,7 +21,7 @@ import (
 type tomlLoader struct {
 }
 
-func (tl *tomlLoader) Decode(r io.Reader) (map[string]interface{}, error) {
+func (tl *tomlLoader) Decode(_ context.Context, r io.Reader) (map[string]interface{}, error) {
 	ret := make(map[string]interface{})
 	_, err := toml.DecodeReader(r, &ret)
 	if err != nil {
