@@ -2,7 +2,7 @@
 // for using this package, just import it
 //
 // 		import (
-// 			_ "github.com/fzerorubigd/onion/tomlloader"
+// 			_ "github.com/fzerorubigd/onion/loaders/toml"
 // 		)
 //
 // There is no need to do anything else, if you load a file with toml

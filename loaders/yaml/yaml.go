@@ -2,7 +2,7 @@
 // for using this package, just import it
 //
 // 		import (
-// 			_ "github.com/fzerorubigd/onion/yamlloader"
+// 			_ "github.com/fzerorubigd/onion/loaders/yaml"
 // 		)
 //
 // There is no need to do anything else, if you load a file with yaml/yml
