@@ -20,3 +20,6 @@ This is an experimental branch for refactoring the onion.
 - [ ] Encryption support on all loader layer
 - [ ] etcd and Consul support 
 - [ ] json/yaml/toml/properties/hcl support
+- [ ] Config writer
+- [ ] Integrate context (and no context version of all functions)
+- [ ] Global config

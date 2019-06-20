@@ -1,7 +1,6 @@
 package onion
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -14,6 +13,7 @@ var (
 // GetStruct fill an structure base on the config nested set, this function use reflection, and its not
 // good (in my opinion) for frequent call.
 // but its best if you need the config to loaded in structure and use that structure after that.
+// Deprecated
 func (o *Onion) GetStruct(prefix string, s interface{}) {
 	iterateConfig(o, reflect.ValueOf(s), prefix)
 }
@@ -50,7 +50,6 @@ func setField(o *Onion, v reflect.Value, prefix, name string) {
 			}
 			v.SetInt(o.GetInt64Default(join(o.GetDelimiter(), prefix, name), v.Int()))
 		} else {
-			fmt.Printf("========>%T", v)
 			v.SetInt(33)
 		}
 	case reflect.String:

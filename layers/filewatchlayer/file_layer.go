@@ -28,7 +28,7 @@ func reload(ctx context.Context, path string, fl streamReload, ext string) error
 
 // NewFileWatchLayerContext create a file layer with automatic fswatch.
 // it reloads if the file content has changed, also the watch finish with the context
-// a non-nil ciper is used to load encrypted file, nil means plain file
+// a non-nil cipher is used to load encrypted file, nil means plain file
 func NewFileWatchLayerContext(ctx context.Context, path string, c onion.Cipher) (onion.Layer, error) {
 	l, err := onion.NewFileLayerContext(ctx, path, c)
 	if err != nil {

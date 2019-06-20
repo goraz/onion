@@ -20,14 +20,14 @@ type Layer interface {
 	Watch() <-chan map[string]interface{}
 }
 
+var o = &Onion{}
+
 // Onion is a layer base configuration system
 type Onion struct {
 	lock sync.RWMutex
 
 	delimiter string
 	ll        []Layer
-
-	stop chan struct{}
 
 	// Loaded data
 	data map[Layer]map[string]interface{}
@@ -61,6 +61,11 @@ func (o *Onion) setLayerData(l Layer, data map[string]interface{}) {
 	o.data[l] = data
 }
 
+// AddLayersContext add a new layer to global config
+func AddLayersContext(ctx context.Context, l ...Layer) {
+	o.AddLayersContext(ctx, l...)
+}
+
 // AddLayer add a new layer to the end of config layers. last layer is loaded after all other
 // layer
 func (o *Onion) AddLayersContext(ctx context.Context, l ...Layer) {
@@ -69,10 +74,6 @@ func (o *Onion) AddLayersContext(ctx context.Context, l ...Layer) {
 	}
 	o.lock.Lock()
 	o.ll = append(o.ll, l...)
-	// close the old go routine
-	if o.stop == nil {
-		o.stop = make(chan struct{})
-	}
 	o.lock.Unlock()
 
 	for i := range l {
@@ -81,8 +82,18 @@ func (o *Onion) AddLayersContext(ctx context.Context, l ...Layer) {
 	}
 }
 
+// AddLayers add a new layer to global config
+func AddLayers(l ...Layer) {
+	o.AddLayersContext(context.Background(), l...)
+}
+
 func (o *Onion) AddLayers(l ...Layer) {
 	o.AddLayersContext(context.Background(), l...)
+}
+
+// GetDelimiter return the delimiter for nested key
+func GetDelimiter() string {
+	return o.GetDelimiter()
 }
 
 // GetDelimiter return the delimiter for nested key
@@ -94,9 +105,18 @@ func (o *Onion) GetDelimiter() string {
 	return o.delimiter
 }
 
+func SetDelimiter(d string) {
+	o.SetDelimiter(d)
+}
+
 // SetDelimiter set the current delimiter
 func (o *Onion) SetDelimiter(d string) {
 	o.delimiter = d
+}
+
+// Get try to get the key from config layers
+func Get(key string) (interface{}, bool) {
+	return o.Get(key)
 }
 
 // Get try to get the key from config layers
@@ -117,13 +137,30 @@ func (o *Onion) Get(key string) (interface{}, bool) {
 
 // GetIntDefault return an int value from Onion, if the value is not exists or its not an
 // integer , default is returned
+func GetIntDefault(key string, def int) int {
+	return o.GetIntDefault(key, def)
+}
+
+// GetIntDefault return an int value from Onion, if the value is not exists or its not an
+// integer , default is returned
 func (o *Onion) GetIntDefault(key string, def int) int {
 	return int(o.GetInt64Default(key, int64(def)))
 }
 
 // GetInt return an int value, if the value is not there, then it return zero value
+func GetInt(key string) int {
+	return o.GetInt(key)
+}
+
+// GetInt return an int value, if the value is not there, then it return zero value
 func (o *Onion) GetInt(key string) int {
 	return o.GetIntDefault(key, 0)
+}
+
+// GetInt64Default return an int64 value from Onion, if the value is not exists or if the value is not
+// int64 then return the default
+func GetInt64Default(key string, def int64) int64 {
+	return o.GetInt64Default(key, def)
 }
 
 // GetInt64Default return an int64 value from Onion, if the value is not exists or if the value is not
@@ -158,8 +195,19 @@ func (o *Onion) GetInt64Default(key string, def int64) int64 {
 }
 
 // GetInt64 return the int64 value from config, if its not there, return zero
+func GetInt64(key string) int64 {
+	return o.GetInt64(key)
+}
+
+// GetInt64 return the int64 value from config, if its not there, return zero
 func (o *Onion) GetInt64(key string) int64 {
 	return o.GetInt64Default(key, 0)
+}
+
+// GetFloat32Default return an float32 value from Onion, if the value is not exists or its not a
+// float32, default is returned
+func GetFloat32Default(key string, def float32) float32 {
+	return o.GetFloat32Default(key, def)
 }
 
 // GetFloat32Default return an float32 value from Onion, if the value is not exists or its not a
@@ -169,8 +217,19 @@ func (o *Onion) GetFloat32Default(key string, def float32) float32 {
 }
 
 // GetFloat32 return an float32 value, if the value is not there, then it returns zero value
+func GetFloat32(key string) float32 {
+	return o.GetFloat32(key)
+}
+
+// GetFloat32 return an float32 value, if the value is not there, then it returns zero value
 func (o *Onion) GetFloat32(key string) float32 {
 	return o.GetFloat32Default(key, 0)
+}
+
+// GetFloat64Default return an float64 value from Onion, if the value is not exists or if the value is not
+// float64 then return the default
+func GetFloat64Default(key string, def float64) float64 {
+	return o.GetFloat64Default(key, def)
 }
 
 // GetFloat64Default return an float64 value from Onion, if the value is not exists or if the value is not
@@ -205,8 +264,19 @@ func (o *Onion) GetFloat64Default(key string, def float64) float64 {
 }
 
 // GetFloat64 return the float64 value from config, if its not there, return zero
+func GetFloat64(key string) float64 {
+	return o.GetFloat64(key)
+}
+
+// GetFloat64 return the float64 value from config, if its not there, return zero
 func (o *Onion) GetFloat64(key string) float64 {
 	return o.GetFloat64Default(key, 0)
+}
+
+// GetStringDefault get a string from Onion. if the value is not exists or if tha value is not
+// string, return the default
+func GetStringDefault(key string, def string) string {
+	return o.GetStringDefault(key, def)
 }
 
 // GetStringDefault get a string from Onion. if the value is not exists or if tha value is not
@@ -226,8 +296,19 @@ func (o *Onion) GetStringDefault(key string, def string) string {
 }
 
 // GetString is for getting an string from conig. if the key is not
+func GetString(key string) string {
+	return o.GetString(key)
+}
+
+// GetString is for getting an string from conig. if the key is not
 func (o *Onion) GetString(key string) string {
 	return o.GetStringDefault(key, "")
+}
+
+// GetBoolDefault return bool value from Onion. if the value is not exists or if tha value is not
+// boolean, return the default
+func GetBoolDefault(key string, def bool) bool {
+	return o.GetBoolDefault(key, def)
 }
 
 // GetBoolDefault return bool value from Onion. if the value is not exists or if tha value is not
@@ -255,8 +336,19 @@ func (o *Onion) GetBoolDefault(key string, def bool) bool {
 }
 
 // GetBool is used to get a boolean value fro config, with false as default
+func GetBool(key string) bool {
+	return o.GetBool(key)
+}
+
+// GetBool is used to get a boolean value fro config, with false as default
 func (o *Onion) GetBool(key string) bool {
 	return o.GetBoolDefault(key, false)
+}
+
+// GetDurationDefault is a function to get duration from config. it support both
+// string duration (like 1h3m2s) and integer duration
+func GetDurationDefault(key string, def time.Duration) time.Duration {
+	return o.GetDurationDefault(key, def)
 }
 
 // GetDurationDefault is a function to get duration from config. it support both
@@ -287,6 +379,12 @@ func (o *Onion) GetDurationDefault(key string, def time.Duration) time.Duration 
 
 // GetDuration is for getting duration from config, it cast both int and string
 // to duration
+func GetDuration(key string) time.Duration {
+	return o.GetDuration(key)
+}
+
+// GetDuration is for getting duration from config, it cast both int and string
+// to duration
 func (o *Onion) GetDuration(key string) time.Duration {
 	return o.GetDurationDefault(key, 0)
 }
@@ -302,6 +400,12 @@ func (o *Onion) getSlice(key string) (interface{}, bool) {
 	}
 
 	return v, true
+}
+
+// GetStringSlice try to get a slice from the config, also it support comma separated value
+// if there is no array at the key.
+func GetStringSlice(key string) []string {
+	return o.GetStringSlice(key)
 }
 
 // GetStringSlice try to get a slice from the config, also it support comma separated value
