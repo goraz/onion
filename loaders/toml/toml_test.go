@@ -9,7 +9,7 @@ import (
 )
 
 func TestYamlLoader(t *testing.T) {
-	Convey("Load a yaml structure into a json", t, func() {
+	Convey("Load a yaml structure into a layer", t, func() {
 		buf := bytes.NewBufferString(`
   str = "string_data"
   bool = true
