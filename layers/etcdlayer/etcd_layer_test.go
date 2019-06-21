@@ -2,8 +2,8 @@ package etcdlayer
 
 import (
 	"context"
+	"sync"
 	"testing"
-	"time"
 
 	"github.com/etcd-io/etcd/client"
 	"github.com/fzerorubigd/onion"
@@ -24,10 +24,18 @@ func TestNewEtcdLayerContext(t *testing.T) {
 		l, err := NewEtcdLayer("/app/config", "json", endPoints, nil)
 		So(err, ShouldBeNil)
 		o := onion.New(l)
+		w := sync.WaitGroup{}
+		w.Add(1)
+		go func() {
+			defer w.Done()
+			<-o.ReloadWatch()
+		}()
 		So(o.GetInt("hi"), ShouldEqual, 100)
 		_, err = api.Set(context.Background(), "/app/config", `{"hi": 200}`, nil)
 		So(err, ShouldBeNil)
-		time.Sleep(3 * time.Second) // TODO : How to wait properly?
+
+		// Wait for reload channel
+		w.Wait()
 		So(o.GetInt("hi"), ShouldEqual, 200)
 	})
 

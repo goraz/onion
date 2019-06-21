@@ -31,6 +31,8 @@ type Onion struct {
 
 	// Loaded data
 	data map[Layer]map[string]interface{}
+
+	reload chan struct{}
 }
 
 func (o *Onion) watchLayer(ctx context.Context, l Layer) {
@@ -44,14 +46,14 @@ func (o *Onion) watchLayer(ctx context.Context, l Layer) {
 			if !ok {
 				return
 			}
-			o.setLayerData(l, data)
+			o.setLayerData(l, data, true)
 		case <-ctx.Done():
 			return
 		}
 	}
 }
 
-func (o *Onion) setLayerData(l Layer, data map[string]interface{}) {
+func (o *Onion) setLayerData(l Layer, data map[string]interface{}, watch bool) {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
@@ -59,6 +61,17 @@ func (o *Onion) setLayerData(l Layer, data map[string]interface{}) {
 		o.data = make(map[Layer]map[string]interface{})
 	}
 	o.data[l] = data
+
+	if !watch || o.reload == nil {
+		return
+	}
+
+	go func() {
+		select {
+		case o.reload <- struct{}{}:
+		default:
+		}
+	}()
 }
 
 // AddLayersContext add a new layer to global config
@@ -77,7 +90,7 @@ func (o *Onion) AddLayersContext(ctx context.Context, l ...Layer) {
 	o.lock.Unlock()
 
 	for i := range l {
-		o.setLayerData(l[i], l[i].Load())
+		o.setLayerData(l[i], l[i].Load(), false)
 		go o.watchLayer(ctx, l[i])
 	}
 }
@@ -112,6 +125,24 @@ func SetDelimiter(d string) {
 // SetDelimiter set the current delimiter
 func (o *Onion) SetDelimiter(d string) {
 	o.delimiter = d
+}
+
+// ReloadWatch see onion.ReloadWatch
+func ReloadWatch() chan struct{} {
+	return o.ReloadWatch()
+}
+
+// ReloadWatch returns a channel to watch new layer data change, if there is no listener event will be lost
+// TODO : Change it to a proper channel with more data like error
+func (o *Onion) ReloadWatch() chan struct{} {
+	o.lock.Lock()
+	defer o.lock.Unlock()
+
+	if o.reload == nil {
+		o.reload = make(chan struct{})
+	}
+
+	return o.reload
 }
 
 // Get try to get the key from config layers

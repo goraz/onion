@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"sync"
 	"testing"
-	"time"
 
 	"github.com/fzerorubigd/onion"
 	. "github.com/smartystreets/goconvey/convey"
@@ -33,9 +33,14 @@ func TestNewFileWatchLayerContext(t *testing.T) {
 		l, err := NewFileWatchLayer(fl, nil)
 		o := onion.New(l)
 		So(o.GetInt("hi"), ShouldEqual, 100)
+		w := sync.WaitGroup{}
+		w.Add(1)
+		go func() {
+			defer w.Done()
+			<-o.ReloadWatch()
+		}()
 		So(writeJson(fl, map[string]interface{}{"hi": 200}), ShouldBeNil)
-		// TODO : Event channel
-		time.Sleep(time.Second)
+		w.Wait()
 		So(o.GetInt("hi"), ShouldEqual, 200)
 	})
 }
