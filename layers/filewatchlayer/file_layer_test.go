@@ -25,12 +25,13 @@ func TestNewFileWatchLayerContext(t *testing.T) {
 	Convey("Test read file system", t, func() {
 		cfg, err := ioutil.TempFile(os.TempDir(), "*.json")
 		So(err, ShouldBeNil)
-		fl := cfg.Name()
+		fl := cfg.Name() + ".json" // In go1.9 the TempFile function behave differently
 		defer func() { _ = os.Remove(fl) }()
 
 		So(cfg.Close(), ShouldBeNil)
 		So(writeJson(fl, map[string]interface{}{"hi": 100}), ShouldBeNil)
 		l, err := NewFileWatchLayer(fl, nil)
+		So(err, ShouldBeNil)
 		o := onion.New(l)
 		So(o.GetInt("hi"), ShouldEqual, 100)
 		w := sync.WaitGroup{}
