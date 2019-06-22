@@ -13,7 +13,11 @@ type cipher struct {
 }
 
 func (c *cipher) Decrypt(r io.Reader) ([]byte, error) {
-	return Decode(r, bytes.NewReader(c.secretKeyring))
+	data, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return Decode(data, bytes.NewReader(c.secretKeyring))
 }
 
 func NewCipher(secRing io.Reader) (onion.Cipher, error) {

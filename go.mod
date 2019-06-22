@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/coreos/bbolt v1.3.3 // indirect
-	github.com/coreos/etcd v3.3.13+incompatible // indirect
+	github.com/coreos/etcd v3.3.13+incompatible
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
@@ -23,6 +23,7 @@ require (
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/magiconair/properties v1.8.1
+	github.com/ogier/pflag v0.0.1
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/common v0.6.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
@@ -40,6 +41,7 @@ require (
 	golang.org/x/sys v0.0.0-20190621203818-d432491b9138 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
+	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20190620144150-6af8c5fc6601 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/yaml.v2 v2.2.2
