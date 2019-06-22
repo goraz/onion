@@ -1,3 +1,5 @@
+// Package filewatchlayer is the file loader with watch for the file. so by changing the file contents it reload the
+// config
 package filewatchlayer
 
 import (

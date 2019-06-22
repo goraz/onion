@@ -1,3 +1,12 @@
+// Package properties is used to handle properties file in Onion file layer.
+// for using this package, just import it
+//
+// 		import (
+// 			_ "github.com/fzerorubigd/onion/loaders/properties"
+// 		)
+//
+// There is no need to do anything else, if you load a file with toml
+// extension, the toml loader is doing his job.
 package properties
 
 import (

@@ -1,4 +1,4 @@
-// Package tomlloader is used to handle toml file in Onion file/folder layer.
+// Package tomlloader is used to handle toml file in Onion file layer.
 // for using this package, just import it
 //
 // 		import (

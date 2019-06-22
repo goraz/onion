@@ -1,3 +1,4 @@
+// Package etcdlayer is a layer to manage a configuration on a key inside the etcd, it watches the change on the key
 package etcdlayer
 
 import (
