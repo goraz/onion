@@ -131,10 +131,12 @@ func NewStreamLayerContext(ctx context.Context, r io.Reader, format string, c Ci
 	return sl, nil
 }
 
+// NewStreamLayer create new stream layer, see the NewStreamLayerContext
 func NewStreamLayer(r io.Reader, format string, c Cipher) (Layer, error) {
 	return NewStreamLayerContext(context.Background(), r, format, c)
 }
 
+// NewFileLayerContext create a new file layer. it choose the format base on the extension
 func NewFileLayerContext(ctx context.Context, path string, c Cipher) (Layer, error) {
 	ext := strings.TrimPrefix(filepath.Ext(path), ".")
 	f, err := os.Open(path)
@@ -146,6 +148,7 @@ func NewFileLayerContext(ctx context.Context, path string, c Cipher) (Layer, err
 	return NewStreamLayerContext(ctx, f, ext, c)
 }
 
+// NewFileLayer create a new file layer. it choose the format base on the extension
 func NewFileLayer(path string, c Cipher) (Layer, error) {
 	return NewFileLayerContext(context.Background(), path, c)
 }

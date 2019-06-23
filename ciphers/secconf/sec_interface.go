@@ -20,6 +20,9 @@ func (c *cipher) Decrypt(r io.Reader) ([]byte, error) {
 	return Decode(data, bytes.NewReader(c.secretKeyring))
 }
 
+// NewCipher create a new cipher based on the secconf encoding as specified in the following
+// format:
+//   base64(gpg(gzip(data)))
 func NewCipher(secRing io.Reader) (onion.Cipher, error) {
 	b, err := ioutil.ReadAll(secRing)
 	if err != nil {

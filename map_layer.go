@@ -13,7 +13,7 @@ func (m *mapLayer) Watch() <-chan map[string]interface{} {
 	return nil
 }
 
-// NewMapLayerSeparator returns a basic map layer, this layer is simply holds a map of values
+// NewMapLayer returns a basic map layer, this layer is simply holds a map of values
 func NewMapLayer(data map[string]interface{}) Layer {
 	ret := &mapLayer{
 		data: data,

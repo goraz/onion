@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/fzerorubigd/onion.svg)](https://travis-ci.org/fzerorubigd/onion)
 [![Coverage Status](https://coveralls.io/repos/fzerorubigd/onion/badge.svg?branch=develop&service=github)](https://coveralls.io/github/fzerorubigd/onion?branch=master)
 [![GoDoc](https://godoc.org/github.com/fzerorubigd/onion?status.svg)](https://godoc.org/github.com/fzerorubigd/onion)
-
+[![Go Report Card](https://goreportcard.com/badge/github.com/fzerorubigd/onion)](https://goreportcard.com/report/github.com/fzerorubigd/onion)
 
     import "github.com/fzerorubigd/onion"
 

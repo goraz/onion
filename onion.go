@@ -79,7 +79,7 @@ func AddLayersContext(ctx context.Context, l ...Layer) {
 	o.AddLayersContext(ctx, l...)
 }
 
-// AddLayer add a new layer to the end of config layers. last layer is loaded after all other
+// AddLayersContext add new layers to the end of config layers. last layer is loaded after all other
 // layer
 func (o *Onion) AddLayersContext(ctx context.Context, l ...Layer) {
 	if len(l) == 0 {
@@ -100,6 +100,7 @@ func AddLayers(l ...Layer) {
 	o.AddLayersContext(context.Background(), l...)
 }
 
+// AddLayers add new layers to onion
 func (o *Onion) AddLayers(l ...Layer) {
 	o.AddLayersContext(context.Background(), l...)
 }
@@ -118,6 +119,7 @@ func (o *Onion) GetDelimiter() string {
 	return o.delimiter
 }
 
+// SetDelimiter set the current delimiter on global config
 func SetDelimiter(d string) {
 	o.SetDelimiter(d)
 }

@@ -23,7 +23,6 @@ func TestOnion(t *testing.T) {
 		data := getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200.123), int64(100))
 		data["nested"] = getMap("n", "a", 99, true)
 
-		lm := NewMapLayer(data)
 		t1 := make(map[interface{}]interface{})
 		t1["str1"] = 1
 		t1["str2"] = "hi"
@@ -50,7 +49,7 @@ func TestOnion(t *testing.T) {
 		data["durint64"] = int64(100000000)
 		data["booldur"] = true
 
-		lm = NewMapLayer(data)
+		lm := NewMapLayer(data)
 		o := New(lm)
 		Convey("Get direct variable", func() {
 			So(o.GetInt("key0"), ShouldEqual, 42)

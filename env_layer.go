@@ -28,7 +28,7 @@ func NewEnvLayer(separator string, whiteList ...string) Layer {
 	for i := range whiteList {
 		if v, ok := os.LookupEnv(whiteList[i]); ok {
 			keys := strings.Split(strings.ToLower(whiteList[i]), separator)
-			data = buildMap(data, v, keys ...)
+			data = buildMap(data, v, keys...)
 		}
 	}
 
@@ -44,7 +44,7 @@ func NewEnvLayerPrefix(separator string, prefix string) Layer {
 		if strings.HasPrefix(env, pf) {
 			k := strings.Trim(strings.Split(env, "=")[0], "\t\n ")
 			ck := strings.ToLower(strings.TrimPrefix(k, pf))
-			data = buildMap(data, os.Getenv(k), strings.Split(ck, separator) ...)
+			data = buildMap(data, os.Getenv(k), strings.Split(ck, separator)...)
 		}
 	}
 
