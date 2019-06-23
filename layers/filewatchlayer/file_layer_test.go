@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/fzerorubigd/onion"
 	. "github.com/smartystreets/goconvey/convey"
@@ -40,6 +41,7 @@ func TestNewFileWatchLayerContext(t *testing.T) {
 			defer w.Done()
 			<-o.ReloadWatch()
 		}()
+		time.Sleep(time.Second)
 		So(writeJson(fl, map[string]interface{}{"hi": 200}), ShouldBeNil)
 		w.Wait()
 		So(o.GetInt("hi"), ShouldEqual, 200)

@@ -14,5 +14,5 @@ before_install:
   - sleep 3
 script:
   - go get -u ./...
-  - goveralls -v -service travis-ci -repotoken $COVERALLS_TOKEN || go test -v
+  - goveralls -v -service travis-ci -repotoken $COVERALLS_TOKEN || go test -v ./...
 
