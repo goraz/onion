@@ -467,6 +467,20 @@ func (o *Onion) GetStringSlice(key string) []string {
 	return nil
 }
 
+// LayersData is used to get all layers data at once
+func (o *Onion) LayersData() []map[string]interface{} {
+	o.lock.RLock()
+	defer o.lock.RUnlock()
+
+	res := make([]map[string]interface{}, 0, len(o.ll))
+	for i := range o.ll {
+		l := o.ll[i]
+		res = append(res, o.data[l])
+	}
+
+	return res
+}
+
 // NewContext return a new Onion, context is used for watch
 func NewContext(ctx context.Context, layers ...Layer) *Onion {
 	o := &Onion{}
