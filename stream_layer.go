@@ -115,6 +115,9 @@ func (sl *streamLayer) Reload(ctx context.Context, r io.Reader, format string) e
 // format (see RegisterDecoder) and if the Cipher is not nil, it pass data to cipher first.
 // A nil cipher is accepted as plain cipher
 func NewStreamLayerContext(ctx context.Context, r io.Reader, format string, c Cipher) (Layer, error) {
+	if r == nil {
+		return nil, fmt.Errorf("nil stream")
+	}
 	sl := &streamLayer{
 		c:      make(chan map[string]interface{}),
 		cipher: c,

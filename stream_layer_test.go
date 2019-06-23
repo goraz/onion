@@ -47,7 +47,7 @@ func TestRegisterDecoder(t *testing.T) {
 				"hi": 10,
 			},
 		}, "dummy")
-		l, err := NewStreamLayer(nil, "dummy", nil)
+		l, err := NewStreamLayer(bytes.NewReader(nil), "dummy", nil)
 		So(err, ShouldBeNil)
 		o := New(l)
 		So(o.GetInt("hi"), ShouldEqual, 10)
@@ -60,5 +60,8 @@ func TestRegisterDecoder(t *testing.T) {
 		buf := bytes.NewBufferString(`{INVALID}`)
 		_, err = NewStreamLayer(buf, "json", nil)
 		So(err, ShouldBeError)
+
+		_, err = NewStreamLayer(nil, "json", nil)
+		So(err, ShouldNotBeNil)
 	})
 }
