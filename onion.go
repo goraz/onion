@@ -66,12 +66,8 @@ func (o *Onion) setLayerData(l Layer, data map[string]interface{}, watch bool) {
 		return
 	}
 
-	go func() {
-		select {
-		case o.reload <- struct{}{}:
-		default:
-		}
-	}()
+	close(o.reload)
+	o.reload = nil
 }
 
 // AddLayersContext add a new layer to global config
@@ -134,8 +130,8 @@ func ReloadWatch() chan struct{} {
 	return o.ReloadWatch()
 }
 
-// ReloadWatch returns a channel to watch new layer data change, if there is no listener event will be lost
-// TODO : Change it to a proper channel with more data like error
+// ReloadWatch returns a channel to watch new layer data change, it just work for once, after the first change
+// the channel will be changed to a new channel (the old channel will be closed to signal all listners)
 func (o *Onion) ReloadWatch() chan struct{} {
 	o.lock.Lock()
 	defer o.lock.Unlock()
