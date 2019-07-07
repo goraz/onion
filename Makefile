@@ -20,4 +20,4 @@ $(addsuffix -tidy,$(SUBDIRS)):
 	cd $(shell dirname $(ROOT)/$@) && go mod tidy
 
 
-.PHONY: all $(SUBDIRS)
+.PHONY: test update tidy $(addsuffix -tidy,$(SUBDIRS)) $(addsuffix -update,$(SUBDIRS)) $(addsuffix -test,$(SUBDIRS))

@@ -26,9 +26,10 @@ func TestNewEtcdLayerContext(t *testing.T) {
 		o := onion.New(l)
 		w := sync.WaitGroup{}
 		w.Add(1)
+		watch := o.ReloadWatch()
 		go func() {
 			defer w.Done()
-			<-o.ReloadWatch()
+			<-watch
 		}()
 		So(o.GetInt("hi"), ShouldEqual, 100)
 		_, err = api.Set(context.Background(), "/app/config", `{"hi": 200}`, nil)

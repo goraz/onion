@@ -37,9 +37,10 @@ func TestNewFileWatchLayerContext(t *testing.T) {
 		So(o.GetInt("hi"), ShouldEqual, 100)
 		w := sync.WaitGroup{}
 		w.Add(1)
+		watch := o.ReloadWatch()
 		go func() {
 			defer w.Done()
-			<-o.ReloadWatch()
+			<-watch
 		}()
 		time.Sleep(time.Second)
 		So(writeJson(fl, map[string]interface{}{"hi": 200}), ShouldBeNil)
