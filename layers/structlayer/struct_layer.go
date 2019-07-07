@@ -1,7 +1,7 @@
 package structlayer
 
 import (
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 	"github.com/mitchellh/mapstructure"
 )
 

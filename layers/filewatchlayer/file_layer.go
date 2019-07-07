@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 )
 
 type streamReload interface {

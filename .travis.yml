@@ -13,6 +13,6 @@ before_install:
   - bash .travis/install_etcd.sh &
   - sleep 3
 script:
-  - go get -u ./...
-  - goveralls -v -service travis-ci -repotoken $COVERALLS_TOKEN || go test -v ./...
+  - make update
+  - goveralls -v -service travis-ci -repotoken $COVERALLS_TOKEN || make test
 

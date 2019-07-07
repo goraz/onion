@@ -2,7 +2,7 @@
 // for using this package, just import it
 //
 // 		import (
-// 			_ "github.com/fzerorubigd/onion/loaders/properties"
+// 			_ "github.com/goraz/onion/loaders/properties"
 // 		)
 //
 // There is no need to do anything else, if you load a file with toml
@@ -14,7 +14,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 	"github.com/magiconair/properties"
 )
 

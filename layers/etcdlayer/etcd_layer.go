@@ -9,7 +9,7 @@ import (
 	"time"
 
 	goetcd "github.com/etcd-io/etcd/client"
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 )
 
 type streamReload interface {

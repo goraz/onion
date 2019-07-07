@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/coreos/etcd/client"
-	"github.com/fzerorubigd/onion/ciphers/secconf"
+	"github.com/goraz/onion/ciphers/secconf"
 	"github.com/ogier/pflag"
 )
 

@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 )
 
 type cipher struct {

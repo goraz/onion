@@ -2,7 +2,7 @@
 // for using this package, just import it
 //
 // 		import (
-// 			_ "github.com/fzerorubigd/onion/loaders/toml"
+// 			_ "github.com/goraz/onion/loaders/toml"
 // 		)
 //
 // There is no need to do anything else, if you load a file with toml
@@ -15,7 +15,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 )
 
 type tomlLoader struct {

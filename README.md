@@ -1,15 +1,15 @@
 # onion
 
-[![Build Status](https://travis-ci.org/fzerorubigd/onion.svg)](https://travis-ci.org/fzerorubigd/onion)
-[![Coverage Status](https://coveralls.io/repos/fzerorubigd/onion/badge.svg?branch=develop&service=github)](https://coveralls.io/github/fzerorubigd/onion?branch=master)
-[![GoDoc](https://godoc.org/github.com/fzerorubigd/onion?status.svg)](https://godoc.org/github.com/fzerorubigd/onion)
-[![Go Report Card](https://goreportcard.com/badge/github.com/fzerorubigd/onion)](https://goreportcard.com/report/github.com/fzerorubigd/onion)
+[![Build Status](https://travis-ci.org/goraz/onion.svg)](https://travis-ci.org/goraz/onion)
+[![Coverage Status](https://coveralls.io/repos/goraz/onion/badge.svg?branch=develop&service=github)](https://coveralls.io/github/goraz/onion?branch=master)
+[![GoDoc](https://godoc.org/github.com/goraz/onion?status.svg)](https://godoc.org/github.com/goraz/onion)
+[![Go Report Card](https://goreportcard.com/badge/github.com/goraz/onion)](https://goreportcard.com/report/github.com/goraz/onion)
 
-    import "github.com/fzerorubigd/onion"
+    import "github.com/goraz/onion"
 
 Package onion is a layer based, pluggable config manager for golang.
 
-The current version in `develop` branch is work in progress (see the [milestone](https://github.com/fzerorubigd/onion/milestone/1)), for older versions check the `v2` and `v3` branches and use the `gopkg.in/fzerorubigd/onion.v1` and `gopkg.in/fzerorubigd/onion.v2`
+The current version in `develop` branch is work in progress (see the [milestone](https://github.com/goraz/onion/milestone/1)), for older versions check the `v2` and `v3` branches and use the `gopkg.in/goraz/onion.v1` and `gopkg.in/goraz/onion.v2`
 For the next release we use the go module and tagging using semantic version.
 
 ```
@@ -49,7 +49,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 )
 
 func main() {
@@ -81,7 +81,7 @@ for including other formats, (currently other than builtin `json`, the `toml` an
 loader package like this : 
 ```go 
 import (
-    _ "github.com/fzerorubigd/onion/loaders/toml"
+    _ "github.com/goraz/onion/loaders/toml"
 )
 ``` 
 
@@ -95,9 +95,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/fzerorubigd/onion"
-	"github.com/fzerorubigd/onion/layers/etcdlayer"
-	"github.com/fzerorubigd/onion/layers/filewatchlayer"
+	"github.com/goraz/onion"
+	"github.com/goraz/onion/layers/etcdlayer"
+	"github.com/goraz/onion/layers/filewatchlayer"
 )
 
 func main() {
@@ -123,7 +123,7 @@ func main() {
 ### Encrypted config 
 
 Also if you want to store data in encrypted content. currently only `secconf` (based on the [crypt](https://github.com/xordataexchange/crypt) project)
-also the [onioncli](https://github.com/fzerorubigd/onion/tree/develop/cli/onioncli) helps you to manage this keys. 
+also the [onioncli](https://github.com/goraz/onion/tree/develop/cli/onioncli) helps you to manage this keys. 
 
 ```go
 package main
@@ -132,10 +132,10 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/fzerorubigd/onion"
-	"github.com/fzerorubigd/onion/ciphers/secconf"
-	"github.com/fzerorubigd/onion/layers/etcdlayer"
-	"github.com/fzerorubigd/onion/layers/filewatchlayer"
+	"github.com/goraz/onion"
+	"github.com/goraz/onion/ciphers/secconf"
+	"github.com/goraz/onion/layers/etcdlayer"
+	"github.com/goraz/onion/layers/filewatchlayer"
 )
 
 // Normally this should be in a safe place, not here
@@ -143,7 +143,7 @@ const privateKey = `PRIVATE KEY`
 
 func main() {
 	// The private key should be in the safe place. this is just a demo, also there is a cli tool
-	// to create this `go get -u github.com/fzerorubigd/onion/cli/onioncli`
+	// to create this `go get -u github.com/goraz/onion/cli/onioncli`
 	cipher, err := secconf.NewCipher(bytes.NewReader([]byte(privateKey)))
 	if err != nil {
 		panic(err)

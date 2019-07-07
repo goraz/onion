@@ -7,7 +7,7 @@ Currently it can read/write data from file and etcd keys. also it support for en
 ## Installation 
 
 ```
-go get -u github.com/fzerorubigd/onion/cli/onioncli
+go get -u github.com/goraz/onion/cli/onioncli
 ```
 
 if you want to encrypt/decrypt data using PGP, you need to create a private/public key pair using gpg (or any other tool)

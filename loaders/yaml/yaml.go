@@ -2,7 +2,7 @@
 // for using this package, just import it
 //
 // 		import (
-// 			_ "github.com/fzerorubigd/onion/loaders/yaml"
+// 			_ "github.com/goraz/onion/loaders/yaml"
 // 		)
 //
 // There is no need to do anything else, if you load a file with yaml/yml
@@ -15,7 +15,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 )
 
 type yamlLoader struct {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 	"github.com/imdario/mergo"
 )
 

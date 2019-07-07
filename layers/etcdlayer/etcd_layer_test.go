@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/etcd-io/etcd/client"
-	"github.com/fzerorubigd/onion"
+	"github.com/goraz/onion"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
