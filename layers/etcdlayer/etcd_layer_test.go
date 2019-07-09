@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/etcd-io/etcd/client"
 	"github.com/goraz/onion"
@@ -32,9 +33,9 @@ func TestNewEtcdLayerContext(t *testing.T) {
 			<-watch
 		}()
 		So(o.GetInt("hi"), ShouldEqual, 100)
+		time.Sleep(time.Second)
 		_, err = api.Set(context.Background(), "/app/config", `{"hi": 200}`, nil)
 		So(err, ShouldBeNil)
-
 		// Wait for reload channel
 		w.Wait()
 		So(o.GetInt("hi"), ShouldEqual, 200)

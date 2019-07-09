@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/goraz/onion"
@@ -57,6 +58,7 @@ func NewFileWatchLayerContext(ctx context.Context, path string, c onion.Cipher) 
 				return
 			}
 			if event.Op&fsnotify.Write == fsnotify.Write {
+				time.Sleep(time.Second) // sometime it triggers before the complete write TODO: find a solution (not hack)
 				if err := reload(ctx, path, sl, ext); err != nil {
 					log.Println("error:", err) // Better log support
 				}

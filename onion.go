@@ -126,13 +126,13 @@ func (o *Onion) SetDelimiter(d string) {
 }
 
 // ReloadWatch see onion.ReloadWatch
-func ReloadWatch() chan struct{} {
+func ReloadWatch() <-chan struct{} {
 	return o.ReloadWatch()
 }
 
 // ReloadWatch returns a channel to watch new layer data change, it just work for once, after the first change
-// the channel will be changed to a new channel (the old channel will be closed to signal all listners)
-func (o *Onion) ReloadWatch() chan struct{} {
+// the channel will be changed to a new channel (the old channel will be closed to signal all listeners)
+func (o *Onion) ReloadWatch() <-chan struct{} {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
