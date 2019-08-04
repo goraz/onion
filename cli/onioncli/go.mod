@@ -12,12 +12,14 @@ require (
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
 	github.com/google/btree v1.0.0 // indirect
-	github.com/goraz/onion/ciphers/secconf v0.0.0-20190706114413-1448341d7b2b
+	github.com/goraz/onion v0.1.0 // indirect
+	github.com/goraz/onion/ciphers/secconf v0.0.0-20190709175036-4bffee311d64
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.3 // indirect
 	github.com/jonboulle/clockwork v0.1.0 // indirect
+	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/ogier/pflag v0.0.1
 	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect
