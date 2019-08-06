@@ -122,58 +122,62 @@ func RegisterDuration(key string, def time.Duration) Int {
 	return w.RegisterDuration(key, def)
 }
 
+func (rw *RefWatch) watchLoop(o *onion.Onion) {
+	rw.refLock.RLock()
+
+	// Make sure all variables are locked
+	// TODO : lock per onion instance
+	globalLock.Lock()
+
+	for i := range rw.references {
+		switch def := rw.references[i].def.(type) {
+		case int:
+			v := o.GetInt64Default(rw.references[i].key, int64(def))
+			t := rw.references[i].ref.(*int64)
+			*t = v
+		case int64:
+			v := o.GetInt64Default(rw.references[i].key, def)
+			t := rw.references[i].ref.(*int64)
+			*t = v
+		case string:
+			v := o.GetStringDefault(rw.references[i].key, def)
+			t := rw.references[i].ref.(*string)
+			*t = v
+		case float32:
+			v := o.GetFloat64Default(rw.references[i].key, float64(def))
+			t := rw.references[i].ref.(*float64)
+			*t = v
+		case float64:
+			v := o.GetFloat64Default(rw.references[i].key, def)
+			t := rw.references[i].ref.(*float64)
+			*t = v
+		case bool:
+			v := o.GetBoolDefault(rw.references[i].key, def)
+			t := rw.references[i].ref.(*bool)
+			*t = v
+		case time.Duration:
+			v := o.GetDurationDefault(rw.references[i].key, def)
+			t := rw.references[i].ref.(*int64)
+			*t = int64(v)
+		}
+	}
+	rw.refLock.RUnlock()
+	globalLock.Unlock()
+
+}
+
 // Watch get an onion and watch over it for changes in the layers.
 func (rw *RefWatch) Watch(ctx context.Context, o *onion.Onion) {
+	rw.watchLoop(o)
 	go func() {
 		for {
-			rw.refLock.RLock()
-
-			// Make sure all variables are locked
-			// TODO : lock per onion instance
-			globalLock.Lock()
-
-			for i := range rw.references {
-				switch def := rw.references[i].def.(type) {
-				case int:
-					v := o.GetInt64Default(rw.references[i].key, int64(def))
-					t := rw.references[i].ref.(*int64)
-					*t = v
-				case int64:
-					v := o.GetInt64Default(rw.references[i].key, def)
-					t := rw.references[i].ref.(*int64)
-					*t = v
-				case string:
-					v := o.GetStringDefault(rw.references[i].key, def)
-					t := rw.references[i].ref.(*string)
-					*t = v
-				case float32:
-					v := o.GetFloat64Default(rw.references[i].key, float64(def))
-					t := rw.references[i].ref.(*float64)
-					*t = v
-				case float64:
-					v := o.GetFloat64Default(rw.references[i].key, def)
-					t := rw.references[i].ref.(*float64)
-					*t = v
-				case bool:
-					v := o.GetBoolDefault(rw.references[i].key, def)
-					t := rw.references[i].ref.(*bool)
-					*t = v
-				case time.Duration:
-					v := o.GetDurationDefault(rw.references[i].key, def)
-					t := rw.references[i].ref.(*int64)
-					*t = int64(v)
-				}
-			}
-			rw.refLock.RUnlock()
-			globalLock.Unlock()
-
 			ch := o.ReloadWatch()
 			select {
 			case <-ctx.Done():
 				return
 			case <-ch:
+				rw.watchLoop(o)
 			}
-
 		}
 	}()
 }
