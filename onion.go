@@ -465,7 +465,8 @@ func (o *Onion) GetStringSlice(key string) []string {
 	return nil
 }
 
-// LayersData is used to get all layers data at once
+// LayersData is used to get all layers data at once, useful for test and also
+// used in the config writer
 func (o *Onion) LayersData() []map[string]interface{} {
 	o.lock.RLock()
 	defer o.lock.RUnlock()

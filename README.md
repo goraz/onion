@@ -122,7 +122,7 @@ func main() {
 
 ### Encrypted config 
 
-Also if you want to store data in encrypted content. currently only `secconf` (based on the [crypt](https://github.com/xordataexchange/crypt) project)
+Also if you want to store data in encrypted content. currently only `secconf` (based on the [crypt](https://github.com/xordataexchange/crypt) project) is supported.
 also the [onioncli](https://github.com/goraz/onion/tree/develop/cli/onioncli) helps you to manage this keys. 
 
 ```go
@@ -163,7 +163,7 @@ func main() {
 		panic(err)
 	}
 
-	// Create the onion, the final result is union of l1 and l2 but l2 overwrite l1.
+	// Create the onion, the final result is union of l1 and l2 but l2 overwrites l1.
 	o := onion.New(l1, l2)
 	// Get the latest version of the key
 	str := o.GetStringDefault("test.string", "empty")

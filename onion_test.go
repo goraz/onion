@@ -18,6 +18,26 @@ func getMap(prefix string, s ...interface{}) map[string]interface{} {
 	return tmp
 }
 
+type dummyWatch struct {
+	data map[string]interface{}
+	c    chan map[string]interface{}
+}
+
+func (d *dummyWatch) Load() map[string]interface{} {
+	return d.data
+}
+
+func (d *dummyWatch) Watch() <-chan map[string]interface{} {
+	return d.c
+}
+
+func newDummy(data map[string]interface{}) *dummyWatch {
+	return &dummyWatch{
+		data: data,
+		c:    make(chan map[string]interface{}),
+	}
+}
+
 func TestOnion(t *testing.T) {
 	Convey("Onion basic functionality", t, func() {
 		data := getMap("key", 42, "universe", "answer", true, float32(20.88), float64(200.123), int64(100))
@@ -50,107 +70,102 @@ func TestOnion(t *testing.T) {
 		data["booldur"] = true
 
 		lm := NewMapLayer(data)
-		o := New(lm)
+		AddLayers(lm)
 		Convey("Get direct variable", func() {
-			So(o.GetInt("key0"), ShouldEqual, 42)
-			So(o.GetString("key1"), ShouldEqual, "universe")
-			So(o.GetString("key2"), ShouldEqual, "answer")
-			So(o.GetBool("key3"), ShouldBeTrue)
-			So(o.GetInt("key4"), ShouldEqual, 20)
-			So(o.GetFloat32("key4"), ShouldEqual, 20.88)
-			So(o.GetInt("key5"), ShouldEqual, 200)
-			So(o.GetFloat64("key5"), ShouldEqual, 200.123)
-			So(o.GetInt("key6"), ShouldEqual, 100)
+			So(GetInt("key0"), ShouldEqual, 42)
+			So(GetString("key1"), ShouldEqual, "universe")
+			So(GetString("key2"), ShouldEqual, "answer")
+			So(GetBool("key3"), ShouldBeTrue)
+			So(GetInt("key4"), ShouldEqual, 20)
+			So(GetFloat32("key4"), ShouldEqual, 20.88)
+			So(GetInt("key5"), ShouldEqual, 200)
+			So(GetFloat64("key5"), ShouldEqual, 200.123)
+			So(GetInt("key6"), ShouldEqual, 100)
 
-			So(o.GetInt64("key0"), ShouldEqual, 42)
-			So(o.GetInt64("key4"), ShouldEqual, 20)
-			So(o.GetInt64("key5"), ShouldEqual, 200)
-			So(o.GetInt64("key6"), ShouldEqual, 100)
+			So(GetInt64("key0"), ShouldEqual, 42)
+			So(GetInt64("key4"), ShouldEqual, 20)
+			So(GetInt64("key5"), ShouldEqual, 200)
+			So(GetInt64("key6"), ShouldEqual, 100)
 			d, _ := time.ParseDuration("1h2m3s")
-			So(o.GetDuration("durstring"), ShouldEqual, d)
-			So(o.GetDuration("durstringinvalid"), ShouldEqual, 0)
-			So(o.GetDuration("not-set-value"), ShouldEqual, 0)
-			So(o.GetDuration("durint"), ShouldEqual, time.Duration(100000000))
-			So(o.GetDuration("durint64"), ShouldEqual, time.Duration(100000000))
-			So(o.GetDuration("booldur"), ShouldEqual, 0)
-			So(o.GetDuration("dur"), ShouldEqual, time.Minute)
+			So(GetDuration("durstring"), ShouldEqual, d)
+			So(GetDuration("durstringinvalid"), ShouldEqual, 0)
+			So(GetDuration("not-set-value"), ShouldEqual, 0)
+			So(GetDuration("durint"), ShouldEqual, time.Duration(100000000))
+			So(GetDuration("durint64"), ShouldEqual, time.Duration(100000000))
+			So(GetDuration("booldur"), ShouldEqual, 0)
+			So(GetDuration("dur"), ShouldEqual, time.Minute)
 		})
 
 		Convey("Get default value", func() {
-			So(o.GetIntDefault("key1", 0), ShouldEqual, 0)
-			So(o.GetIntDefault("nokey1", 0), ShouldEqual, 0)
+			So(GetIntDefault("key1", 0), ShouldEqual, 0)
+			So(GetIntDefault("nokey1", 0), ShouldEqual, 0)
+			So(GetStringDefault("key0", ""), ShouldEqual, "")
+			So(GetStringDefault("nokey0", ""), ShouldEqual, "")
+			So(GetBoolDefault("key0", false), ShouldBeFalse)
+			So(GetBoolDefault("nokey0", false), ShouldBeFalse)
+			So(GetInt64Default("key1", 0), ShouldEqual, 0)
+			So(GetInt64Default("nokey1", 0), ShouldEqual, 0)
 
-			So(o.GetStringDefault("key0", ""), ShouldEqual, "")
-			So(o.GetStringDefault("nokey0", ""), ShouldEqual, "")
+			So(GetInt64Default("", 0), ShouldEqual, 0) // Empty key
+			So(GetInt64Default("key3", 10000), ShouldEqual, 10000)
+			So(GetFloat32Default("", 0), ShouldEqual, 0) // Empty key
+			So(GetFloat32Default("key3", 10000), ShouldEqual, 10000)
+			So(GetFloat64Default("", 0.123), ShouldEqual, 0.123) // Empty key
+			So(GetFloat64Default("key3", 10000.123), ShouldEqual, 10000.123)
 
-			So(o.GetBoolDefault("key0", false), ShouldBeFalse)
-			So(o.GetBoolDefault("nokey0", false), ShouldBeFalse)
-
-			So(o.GetInt64Default("key1", 0), ShouldEqual, 0)
-			So(o.GetInt64Default("nokey1", 0), ShouldEqual, 0)
-
-			So(o.GetInt64Default("", 0), ShouldEqual, 0) // Empty key
-			So(o.GetInt64Default("key3", 10000), ShouldEqual, 10000)
-
-			So(o.GetFloat32Default("", 0), ShouldEqual, 0) // Empty key
-			So(o.GetFloat32Default("key3", 10000), ShouldEqual, 10000)
-
-			So(o.GetFloat64Default("", 0.123), ShouldEqual, 0.123) // Empty key
-			So(o.GetFloat64Default("key3", 10000.123), ShouldEqual, 10000.123)
+			So(GetDurationDefault("not-set-value", time.Minute), ShouldEqual, time.Minute)
 		})
 
 		Convey("Get nested variable", func() {
-			So(o.GetStringDefault("nested.n0", ""), ShouldEqual, "a")
-			So(o.GetInt64Default("nested.n1", 0), ShouldEqual, 99)
-			So(o.GetIntDefault("nested.n1", 0), ShouldEqual, 99)
-			So(o.GetBoolDefault("nested.n2", false), ShouldEqual, true)
-
-			So(o.GetIntDefault("yes.str1", 0), ShouldEqual, 1)
-			So(o.GetStringDefault("yes.str2", ""), ShouldEqual, "hi")
-
-			So(o.GetStringDefault("yes.nested.str2", ""), ShouldEqual, "hi")
-			So(o.GetStringDefault("yes.what.n0", ""), ShouldEqual, "a")
+			So(GetStringDefault("nested.n0", ""), ShouldEqual, "a")
+			So(GetInt64Default("nested.n1", 0), ShouldEqual, 99)
+			So(GetIntDefault("nested.n1", 0), ShouldEqual, 99)
+			So(GetBoolDefault("nested.n2", false), ShouldEqual, true)
+			So(GetIntDefault("yes.str1", 0), ShouldEqual, 1)
+			So(GetStringDefault("yes.str2", ""), ShouldEqual, "hi")
+			So(GetStringDefault("yes.nested.str2", ""), ShouldEqual, "hi")
+			So(GetStringDefault("yes.what.n0", ""), ShouldEqual, "a")
 		})
 
 		Convey("Get nested default variable", func() {
-			So(o.GetStringDefault("nested.n01", ""), ShouldEqual, "")
-			So(o.GetStringDefault("key0.n01", ""), ShouldEqual, "")
-			So(o.GetInt64Default("nested.n11", 0), ShouldEqual, 0)
-			So(o.GetIntDefault("nested.n11", 0), ShouldEqual, 0)
-			So(o.GetBoolDefault("nested.n21", false), ShouldEqual, false)
+			So(GetStringDefault("nested.n01", ""), ShouldEqual, "")
+			So(GetStringDefault("key0.n01", ""), ShouldEqual, "")
+			So(GetInt64Default("nested.n11", 0), ShouldEqual, 0)
+			So(GetIntDefault("nested.n11", 0), ShouldEqual, 0)
+			So(GetBoolDefault("nested.n21", false), ShouldEqual, false)
 
-			So(o.GetStringDefault("yes.nested.no", "def"), ShouldEqual, "def")
-			So(o.GetStringDefault("yes.nested.other.key", "def"), ShouldEqual, "def")
-			So(o.GetStringDefault("yes.what.no", "def"), ShouldEqual, "def")
+			So(GetStringDefault("yes.nested.no", "def"), ShouldEqual, "def")
+			So(GetStringDefault("yes.nested.other.key", "def"), ShouldEqual, "def")
+			So(GetStringDefault("yes.what.no", "def"), ShouldEqual, "def")
 		})
 
 		Convey("change delimiter", func() {
-			So(o.GetDelimiter(), ShouldEqual, ".")
-			o.SetDelimiter("/")
-			So(o.GetDelimiter(), ShouldEqual, "/")
+			So(GetDelimiter(), ShouldEqual, ".")
+			SetDelimiter("/")
+			So(GetDelimiter(), ShouldEqual, "/")
 			Convey("get with modified delimiter", func() {
-				So(o.GetStringDefault("nested/n0", ""), ShouldEqual, "a")
-				So(o.GetInt64Default("nested/n1", 0), ShouldEqual, 99)
-				So(o.GetIntDefault("nested/n1", 0), ShouldEqual, 99)
-				So(o.GetBoolDefault("nested/n2", false), ShouldEqual, true)
-				So(o.GetStringDefault("nested.n0", ""), ShouldEqual, "")
-				So(o.GetInt64Default("nested.n1", 0), ShouldEqual, 0)
-				So(o.GetIntDefault("nested.n1", 0), ShouldEqual, 0)
-				So(o.GetBoolDefault("nested.n2", false), ShouldEqual, false)
-				So(o.GetStringDefault("key0/n01", ""), ShouldEqual, "")
+				So(GetStringDefault("nested/n0", ""), ShouldEqual, "a")
+				So(GetInt64Default("nested/n1", 0), ShouldEqual, 99)
+				So(GetIntDefault("nested/n1", 0), ShouldEqual, 99)
+				So(GetBoolDefault("nested/n2", false), ShouldEqual, true)
+				So(GetStringDefault("nested.n0", ""), ShouldEqual, "")
+				So(GetInt64Default("nested.n1", 0), ShouldEqual, 0)
+				So(GetIntDefault("nested.n1", 0), ShouldEqual, 0)
+				So(GetBoolDefault("nested.n2", false), ShouldEqual, false)
+				So(GetStringDefault("key0/n01", ""), ShouldEqual, "")
 			})
 
-			o.SetDelimiter("")
-			So(o.GetDelimiter(), ShouldEqual, ".")
+			SetDelimiter("")
+			So(GetDelimiter(), ShouldEqual, ".")
 		})
 
 		Convey("slice test", func() {
-			So(reflect.DeepEqual(o.GetStringSlice("slice1"), []string{"a", "b", "c"}), ShouldBeTrue)
-			So(reflect.DeepEqual(o.GetStringSlice("slice2"), []string{"a", "b", "c"}), ShouldBeTrue)
-			So(o.GetStringSlice("slice3"), ShouldBeNil)
-			So(o.GetStringSlice("notslice3"), ShouldBeNil)
-			So(o.GetStringSlice("yes.str1"), ShouldBeNil)
-			So(o.GetStringSlice("slice4"), ShouldBeNil)
+			So(reflect.DeepEqual(GetStringSlice("slice1"), []string{"a", "b", "c"}), ShouldBeTrue)
+			So(reflect.DeepEqual(GetStringSlice("slice2"), []string{"a", "b", "c"}), ShouldBeTrue)
+			So(GetStringSlice("slice3"), ShouldBeNil)
+			So(GetStringSlice("notslice3"), ShouldBeNil)
+			So(GetStringSlice("yes.str1"), ShouldBeNil)
+			So(GetStringSlice("slice4"), ShouldBeNil)
 		})
 	})
 
@@ -241,4 +256,50 @@ func init() {
 	data["booldur"] = true
 
 	benconion.AddLayers(NewMapLayer(data))
+}
+
+func TestLayersData(t *testing.T) {
+	Convey("Test merge", t, func() {
+		o := New()
+		l1 := NewMapLayer(map[string]interface{}{
+			"key1": 1,
+			"key2": 2,
+		})
+		l2 := NewMapLayer(map[string]interface{}{
+			"key1": 10,
+			"key3": 3,
+		})
+
+		o.AddLayers(l1, l2)
+
+		ret := []map[string]interface{}{
+			map[string]interface{}{
+				"key1": 1,
+				"key2": 2,
+			},
+			map[string]interface{}{
+				"key1": 10,
+				"key3": 3,
+			},
+		}
+
+		So(o.LayersData(), ShouldResemble, ret)
+	})
+}
+
+func TestWatch(t *testing.T) {
+	Convey("Test watch", t, func() {
+		data := map[string]interface{}{
+			"k1": "10.0",
+		}
+
+		l := newDummy(data)
+		o := New(l)
+		ch := o.ReloadWatch()
+		So(o.GetFloat32("k1"), ShouldEqual, 10.0)
+		data["k1"] = "100.0"
+		l.c <- data
+		<-ch
+		So(o.GetFloat32("k1"), ShouldEqual, 100.0)
+	})
 }
