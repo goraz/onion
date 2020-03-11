@@ -479,6 +479,38 @@ func (o *Onion) LayersData() []map[string]interface{} {
 	return res
 }
 
+// MergedLayersData is used to get all layers data merged into one
+// Latest added overwrite previous ones.
+func (o *Onion) MergedLayersData() map[string]interface{} {
+	layers := o.LayersData()
+
+	mergedLayer := layers[len(layers)-1]
+	layers = layers[:len(layers)-1]
+
+	for i := len(layers) - 1; i >= 0; i-- {
+		mergedLayer = mergeKeys(mergedLayer, layers[i])
+	}
+
+	return mergedLayer
+}
+
+// mergeKeys recursively merge right into left, never replacing any key that already exists in left
+func mergeKeys(left, right map[string]interface{}) map[string]interface{} {
+	for key, rightVal := range right {
+		if leftVal, present := left[key]; present {
+			_, leftValIsAMap := leftVal.(map[string]interface{})
+			_, rightValIsAMap := leftVal.(map[string]interface{})
+
+			if leftValIsAMap && rightValIsAMap {
+				left[key] = mergeKeys(leftVal.(map[string]interface{}), rightVal.(map[string]interface{}))
+			}
+		} else {
+			left[key] = rightVal
+		}
+	}
+	return left
+}
+
 // NewContext return a new Onion, context is used for watch
 func NewContext(ctx context.Context, layers ...Layer) *Onion {
 	o := &Onion{}
