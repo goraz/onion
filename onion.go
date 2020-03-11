@@ -496,6 +496,10 @@ func (o *Onion) MergedLayersData() map[string]interface{} {
 
 // mergeKeys recursively merge right into left, never replacing any key that already exists in left
 func mergeKeys(left, right map[string]interface{}) map[string]interface{} {
+	if left == nil {
+		return right
+	}
+
 	for key, rightVal := range right {
 		if leftVal, present := left[key]; present {
 			_, leftValIsAMap := leftVal.(map[string]interface{})
