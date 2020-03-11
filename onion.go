@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 // Layer is an interface to handle the load phase.
@@ -513,6 +515,14 @@ func mergeKeys(left, right map[string]interface{}) map[string]interface{} {
 		}
 	}
 	return left
+}
+
+// MergeAndDecode try to convert merged layers in the output structure.
+// output must be a pointer to a map or struct.
+func (o *Onion) MergeAndDecode(output interface{}) error {
+	merged := o.MergedLayersData()
+
+	return mapstructure.Decode(merged, &output)
 }
 
 // NewContext return a new Onion, context is used for watch
