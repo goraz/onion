@@ -9,15 +9,15 @@ import (
 	"github.com/skarademir/naturalsort"
 )
 
-// NewFolderLayer return a new folder layer.
-// This layer search in a folder for all files with filesExtension extension
+// NewDirectoryLayer return a new directory layer.
+// This layer search in a directory for all files with filesExtension extension
 // and will use each of them as a file layer
-func NewFolderLayer(folder, filesExtension string) (Layer, error) {
-	if folder[len(folder)-1:] != string(os.PathSeparator) {
-		folder += string(os.PathSeparator)
+func NewDirectoryLayer(directory, filesExtension string) (Layer, error) {
+	if directory[len(directory)-1:] != string(os.PathSeparator) {
+		directory += string(os.PathSeparator)
 	}
 
-	fileNames := getFilesInOrder(folder, filesExtension)
+	fileNames := getFilesInOrder(directory, filesExtension)
 
 	if fileNames == nil || len(fileNames) == 0 {
 		return NewMapLayer(nil), nil
@@ -38,8 +38,8 @@ func NewFolderLayer(folder, filesExtension string) (Layer, error) {
 	return NewMapLayer(utils.MergeLayersData(layersData)), nil
 }
 
-func getFilesInOrder(folder, filesExtension string) []string {
-	filePaths, err := filepath.Glob(folder + string(os.PathSeparator) + "*." + filesExtension)
+func getFilesInOrder(directory, filesExtension string) []string {
+	filePaths, err := filepath.Glob(directory + string(os.PathSeparator) + "*." + filesExtension)
 	if err != nil {
 		return nil
 	}

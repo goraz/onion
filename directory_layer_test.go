@@ -29,24 +29,24 @@ const testFile2 = `
 }
 `
 
-func TestNewFolderLayer(t *testing.T) {
-	Convey("Test folder layer", t, func() {
-		folderName, err := ioutil.TempDir("", "onion-test-*")
+func TestNewDirectoryLayer(t *testing.T) {
+	Convey("Test directory layer", t, func() {
+		directoryName, err := ioutil.TempDir("", "onion-test-*")
 		if err != nil {
 			t.Error("Something went wrong creating temp directory")
 		}
 
 		for i, testFile := range []string{testFile1, testFile2} {
-			ioutil.WriteFile(folderName+"/test"+strconv.Itoa(i)+".json", []byte(testFile), 0644)
+			ioutil.WriteFile(directoryName+"/test"+strconv.Itoa(i)+".json", []byte(testFile), 0644)
 		}
 
-		folderLayer, err := NewFolderLayer(folderName, "json")
-		o := New(folderLayer)
+		directoryLayer, err := NewDirectoryLayer(directoryName, "json")
+		o := New(directoryLayer)
 		So(o.GetString("string-not-to-override"), ShouldEqual, "pippo")
 		So(o.GetString("string-to-override"), ShouldEqual, "This string will override")
 		So(o.GetInt("number"), ShouldEqual, 101)
 		So(o.GetBool("nested.bool"), ShouldEqual, false)
 
-		os.RemoveAll(folderName)
+		os.RemoveAll(directoryName)
 	})
 }
