@@ -18,6 +18,11 @@ func NewFolderLayer(folder, filesExtension string) (Layer, error) {
 	}
 
 	fileNames := getFilesInOrder(folder, filesExtension)
+
+	if fileNames == nil || len(fileNames) == 0 {
+		return NewMapLayer(nil), nil
+	}
+
 	layersData := make([]map[string]interface{}, 0)
 
 	for _, fileName := range fileNames {
