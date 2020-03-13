@@ -7,9 +7,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/goraz/onion/helper"
-	"github.com/mitchellh/mapstructure"
 )
 
 // Layer is an interface to handle the load phase.
@@ -480,22 +477,6 @@ func (o *Onion) LayersData() []map[string]interface{} {
 	}
 
 	return res
-}
-
-// MergedLayersData is used to get all layers data merged into one
-// Latest added overwrite previous ones.
-func (o *Onion) MergedLayersData() map[string]interface{} {
-	layersData := o.LayersData()
-
-	return helper.MergeLayersData(layersData)
-}
-
-// MergeAndDecode try to convert merged layers in the output structure.
-// output must be a pointer to a map or struct.
-func (o *Onion) MergeAndDecode(output interface{}) error {
-	merged := o.MergedLayersData()
-
-	return mapstructure.Decode(merged, &output)
 }
 
 // NewContext return a new Onion, context is used for watch

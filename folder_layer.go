@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/goraz/onion/helper"
+	"github.com/goraz/onion/utils"
 	"github.com/skarademir/naturalsort"
 )
 
@@ -30,7 +30,7 @@ func NewFolderLayer(folder, filesExtension string) (Layer, error) {
 		layersData = append(layersData, layer.Load())
 	}
 
-	return NewMapLayer(helper.MergeLayersData(layersData)), nil
+	return NewMapLayer(utils.MergeLayersData(layersData)), nil
 }
 
 func getFilesInOrder(folder, filesExtension string) []string {

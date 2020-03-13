@@ -1,4 +1,4 @@
-package helper
+package utils
 
 // MergeLayersData is an helper function to merge more layers in one.
 // Following slice order, a previous layer key is overriden by an equal key in

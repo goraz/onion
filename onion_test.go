@@ -183,59 +183,6 @@ func TestOnion(t *testing.T) {
 		So(o1.GetIntDefault("test0", 0), ShouldEqual, 1)
 	})
 
-	Convey("Test layers merge", t, func() {
-		lm1 := NewMapLayer(getMap("test", 1, true))
-		lm2 := NewMapLayer(getMap("test", 2, false))
-		os.Setenv("TEST0", "3")
-		os.Setenv("TEST1", "True")
-		os.Setenv("TEST2", "INVALIDBOOL")
-		lm3 := NewEnvLayer("_", "TEST0", "TEST1", "TEST2")
-
-		o := New(lm1)
-		o.AddLayers(lm2)
-
-		mergedLayers := o.MergedLayersData()
-		So(mergedLayers["test0"], ShouldEqual, 2)
-		So(mergedLayers["test1"], ShouldBeFalse)
-
-		o.AddLayers(lm3) // Special case in ENV loader
-		mergedLayers = o.MergedLayersData()
-		So(mergedLayers["test0"], ShouldEqual, "3")
-		So(mergedLayers["test1"], ShouldEqual, "True")
-		So(mergedLayers["test2"], ShouldEqual, "INVALIDBOOL")
-	})
-
-	Convey("Test layers merge and decode to struct", t, func() {
-		type Config struct {
-			Test0 int64
-			Test1 bool
-			Test2 bool
-			Test3 string
-		}
-
-		lm1 := NewMapLayer(getMap("test", 1, true))
-		lm2 := NewMapLayer(getMap("test", 2, false))
-
-		o := New(lm1)
-		o.AddLayers(lm2)
-
-		var conf, conf2 Config
-
-		o.MergeAndDecode(&conf)
-		So(conf.Test0, ShouldEqual, 2)
-		So(conf.Test1, ShouldBeFalse)
-
-		os.Setenv("TEST3", "ALongStringInSnakeCase")
-
-		lm3 := NewEnvLayer("_", "TEST3")
-		o.AddLayers(lm3) // Special case in ENV loader
-
-		o.MergeAndDecode(&conf2)
-		So(conf2.Test0, ShouldEqual, 2)
-		So(conf2.Test1, ShouldBeFalse)
-		So(conf2.Test2, ShouldBeFalse)
-		So(conf2.Test3, ShouldEqual, "ALongStringInSnakeCase")
-	})
 
 }
 
