@@ -3,12 +3,21 @@ package onionwriter
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/goraz/onion"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func getMap(prefix string, s ...interface{}) map[string]interface{} {
+	tmp := make(map[string]interface{})
+	for i := range s {
+		tmp[fmt.Sprintf("%s%d", prefix, i)] = s[i]
+	}
+	return tmp
+}
 
 func TestSerializeOnion(t *testing.T) {
 	Convey("Serialize the onion into json", t, func() {
@@ -38,8 +47,8 @@ func TestSerializeOnion(t *testing.T) {
 	})
 
 	Convey("Test layers merge", t, func() {
-		lm1 := onion.NewMapLayer(onion.getMap("test", 1, true))
-		lm2 := onion.NewMapLayer(onion.getMap("test", 2, false))
+		lm1 := onion.NewMapLayer(getMap("test", 1, true))
+		lm2 := onion.NewMapLayer(getMap("test", 2, false))
 		os.Setenv("TEST0", "3")
 		os.Setenv("TEST1", "True")
 		os.Setenv("TEST2", "INVALIDBOOL")
@@ -67,8 +76,8 @@ func TestSerializeOnion(t *testing.T) {
 			Test3 string
 		}
 
-		lm1 := onion.NewMapLayer(onion.getMap("test", 1, true))
-		lm2 := onion.NewMapLayer(onion.getMap("test", 2, false))
+		lm1 := onion.NewMapLayer(getMap("test", 1, true))
+		lm2 := onion.NewMapLayer(getMap("test", 2, false))
 
 		o := onion.New(lm1)
 		o.AddLayers(lm2)
@@ -84,7 +93,7 @@ func TestSerializeOnion(t *testing.T) {
 		lm3 := onion.NewEnvLayer("_", "TEST3")
 		o.AddLayers(lm3) // Special case in ENV loader
 
-		o.MergeAndDecode(o, &conf2)
+		DecodeOnion(o, &conf2)
 		So(conf2.Test0, ShouldEqual, 2)
 		So(conf2.Test1, ShouldBeFalse)
 		So(conf2.Test2, ShouldBeFalse)
