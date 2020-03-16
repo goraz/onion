@@ -32,7 +32,7 @@ const testFile2 = `
 
 func TestNewDirectoryLayer(t *testing.T) {
 	Convey("Test directory layer", t, func() {
-		directoryName, err := ioutil.TempDir("", "onion-test-*")
+		directoryName, err := ioutil.TempDir("", "onion-test-")
 		if err != nil {
 			t.Error("Something went wrong creating temp directory")
 		}
