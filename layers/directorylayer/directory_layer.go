@@ -1,10 +1,11 @@
-package onion
+package directorylayer
 
 import (
 	"os"
 	"path/filepath"
 	"sort"
 
+	"github.com/goraz/onion"
 	"github.com/goraz/onion/utils"
 	"github.com/skarademir/naturalsort"
 )
@@ -12,7 +13,7 @@ import (
 // NewDirectoryLayer return a new directory layer.
 // This layer search in a directory for all files with filesExtension extension
 // and will use each of them as a file layer
-func NewDirectoryLayer(directory, filesExtension string) (Layer, error) {
+func NewDirectoryLayer(directory, filesExtension string) (onion.Layer, error) {
 	if directory[len(directory)-1:] != string(os.PathSeparator) {
 		directory += string(os.PathSeparator)
 	}
@@ -20,13 +21,13 @@ func NewDirectoryLayer(directory, filesExtension string) (Layer, error) {
 	fileNames := getFilesInOrder(directory, filesExtension)
 
 	if fileNames == nil || len(fileNames) == 0 {
-		return NewMapLayer(nil), nil
+		return onion.NewMapLayer(nil), nil
 	}
 
 	layersData := make([]map[string]interface{}, 0)
 
 	for _, fileName := range fileNames {
-		layer, err := NewFileLayer(fileName, nil)
+		layer, err := onion.NewFileLayer(fileName, nil)
 
 		if err != nil {
 			return nil, err
@@ -35,7 +36,7 @@ func NewDirectoryLayer(directory, filesExtension string) (Layer, error) {
 		layersData = append(layersData, layer.Load())
 	}
 
-	return NewMapLayer(utils.MergeLayersData(layersData)), nil
+	return onion.NewMapLayer(utils.MergeLayersData(layersData)), nil
 }
 
 func getFilesInOrder(directory, filesExtension string) []string {

@@ -182,8 +182,6 @@ func TestOnion(t *testing.T) {
 		o1.AddLayers(lm)
 		So(o1.GetIntDefault("test0", 0), ShouldEqual, 1)
 	})
-
-
 }
 
 func BenchmarkOion(b *testing.B) {

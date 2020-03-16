@@ -1,4 +1,4 @@
-package onion
+package directorylayer
 
 import (
 	"io/ioutil"
@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/goraz/onion"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -41,7 +42,7 @@ func TestNewDirectoryLayer(t *testing.T) {
 		}
 
 		directoryLayer, err := NewDirectoryLayer(directoryName, "json")
-		o := New(directoryLayer)
+		o := onion.New(directoryLayer)
 		So(o.GetString("string-not-to-override"), ShouldEqual, "pippo")
 		So(o.GetString("string-to-override"), ShouldEqual, "This string will override")
 		So(o.GetInt("number"), ShouldEqual, 101)
