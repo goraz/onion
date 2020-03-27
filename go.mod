@@ -3,7 +3,6 @@ module github.com/goraz/onion
 go 1.13
 
 require (
-	github.com/BurntSushi/toml v0.3.1
 	github.com/coreos/etcd v3.3.17+incompatible
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/etcd-io/etcd v3.3.17+incompatible
@@ -15,6 +14,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/ogier/pflag v0.0.1
+	github.com/pelletier/go-toml v1.6.0
 	github.com/skarademir/naturalsort v0.0.0-20150715044055-69a5d87bef62
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337
 	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708

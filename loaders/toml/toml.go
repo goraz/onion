@@ -13,22 +13,20 @@ import (
 	"context"
 	"io"
 
-	"github.com/BurntSushi/toml"
-
 	"github.com/goraz/onion"
+	"github.com/pelletier/go-toml"
 )
 
 type tomlLoader struct {
 }
 
 func (tl *tomlLoader) Decode(_ context.Context, r io.Reader) (map[string]interface{}, error) {
-	ret := make(map[string]interface{})
-	_, err := toml.DecodeReader(r, &ret)
+	config, err := toml.LoadReader(r)
 	if err != nil {
 		return nil, err
 	}
 
-	return ret, nil
+	return config.ToMap(), nil
 }
 
 func init() {
