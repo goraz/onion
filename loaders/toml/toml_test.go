@@ -8,8 +8,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestYamlLoader(t *testing.T) {
-	Convey("Load a yaml structure into a layer", t, func() {
+func TestTomlLoader(t *testing.T) {
+	Convey("Load a toml structure into a layer", t, func() {
 		buf := bytes.NewBufferString(`
   str = "string_data"
   bool = true
