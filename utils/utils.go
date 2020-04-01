@@ -21,15 +21,16 @@ func mergeKeys(left, right map[string]interface{}) map[string]interface{} {
 	}
 
 	for key, rightVal := range right {
-		if leftVal, present := left[key]; present {
-			_, leftValIsAMap := leftVal.(map[string]interface{})
-			_, rightValIsAMap := leftVal.(map[string]interface{})
 
-			if leftValIsAMap && rightValIsAMap {
-				left[key] = mergeKeys(leftVal.(map[string]interface{}), rightVal.(map[string]interface{}))
-			}
-		} else {
+		if _, present := left[key]; !present {
 			left[key] = rightVal
+			continue
+		}
+
+		leftMap, isLeftValAMap := left[key].(map[string]interface{})
+		rightMap, isRightValAMap := rightVal.(map[string]interface{})
+		if isLeftValAMap && isRightValAMap {
+			left[key] = mergeKeys(leftMap, rightMap)
 		}
 	}
 

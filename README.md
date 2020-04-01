@@ -77,11 +77,16 @@ func main() {
 
 ### Loading other file format 
 
-for including other formats, (currently other than builtin `json`, the `toml` and `yaml` and `properties` are supported) you need to blank import the 
-loader package like this : 
+Currently `onion` support `json` format out-of-the-box, while you need to blank import the loader package of others formats to use them:
+* `toml` (for 0.4.0 version)
+* `toml-0.5.0` (for 0.5.0 version)
+* `yaml`
+* `properties`
+
+For example:
 ```go 
 import (
-    _ "github.com/goraz/onion/loaders/toml"
+    _ "github.com/goraz/onion/loaders/toml" // Needed to load TOML format
 )
 ``` 
 

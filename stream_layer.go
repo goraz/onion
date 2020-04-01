@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -55,12 +56,19 @@ func (jd *jsonDecoder) Decode(_ context.Context, r io.Reader) (map[string]interf
 }
 
 // RegisterDecoder add a new decoder to the system, json is registered out of the box
-func RegisterDecoder(dec Decoder, typ ...string) {
+func RegisterDecoder(dec Decoder, formats ...string) {
 	decLock.Lock()
 	defer decLock.Unlock()
 
-	for i := range typ {
-		decoders[strings.ToLower(typ[i])] = dec
+	for _, format := range formats {
+		format := strings.ToLower(format)
+
+		_, alreadyExists := decoders[format]
+		if alreadyExists {
+			log.Fatalf("decoder for format %q is already registered: you can have only one", format)
+		}
+
+		decoders[format] = dec
 	}
 }
 
