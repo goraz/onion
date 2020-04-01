@@ -59,8 +59,10 @@ func TestRefWatch(t *testing.T) {
 		data["f32"] = 99.0
 		data["f64"] = 9999.0
 
+		c := o.ReloadWatch()
 		So(ly.Reload(context.Background(), mapToJson(data), "json"), ShouldBeNil)
-		// This is just a hack for the load to finish 
+		// This is just a hack for the load to finish
+		<-c
 		time.Sleep(3 * time.Second)
 
 		So(i32.Int(), ShouldEqual, 132)
