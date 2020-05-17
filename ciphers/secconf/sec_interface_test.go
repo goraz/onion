@@ -16,7 +16,7 @@ func TestNewCipher(t *testing.T) {
 
 		secReader := bytes.NewReader([]byte(secring))
 		c, err := NewCipher(secReader)
-
+		So(err, ShouldBeNil)
 		br, err := c.Decrypt(bytes.NewBuffer(b))
 		So(err, ShouldBeNil)
 		So(string(br), ShouldEqual, data)

@@ -19,7 +19,7 @@ func NewDirectoryLayer(directory, filesExtension string) (onion.Layer, error) {
 
 	fileNames := getFilesInOrder(directory, filesExtension)
 
-	if fileNames == nil || len(fileNames) == 0 {
+	if len(fileNames) == 0 {
 		return onion.NewMapLayer(nil), nil
 	}
 

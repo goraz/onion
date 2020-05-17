@@ -84,7 +84,7 @@ func TestSerializeOnion(t *testing.T) {
 
 		var conf, conf2 Config
 
-		DecodeOnion(o, &conf)
+		So(DecodeOnion(o, &conf), ShouldBeNil)
 		So(conf.Test0, ShouldEqual, 2)
 		So(conf.Test1, ShouldBeFalse)
 
@@ -93,7 +93,7 @@ func TestSerializeOnion(t *testing.T) {
 		lm3 := onion.NewEnvLayer("_", "TEST3")
 		o.AddLayers(lm3) // Special case in ENV loader
 
-		DecodeOnion(o, &conf2)
+		So(DecodeOnion(o, &conf2), ShouldBeNil)
 		So(conf2.Test0, ShouldEqual, 2)
 		So(conf2.Test1, ShouldBeFalse)
 		So(conf2.Test2, ShouldBeFalse)

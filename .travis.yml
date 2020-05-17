@@ -16,5 +16,6 @@ before_install:
   - sleep 3
 script:
   - make update
+  - make lint
   - goveralls -v -service travis-ci -repotoken $COVERALLS_TOKEN || make test
 
