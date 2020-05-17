@@ -1,4 +1,4 @@
-package toml050loader
+package tomlloader
 
 import (
 	"bytes"
