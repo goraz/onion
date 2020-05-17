@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/coreos/etcd/client"
+	"github.com/etcd-io/etcd/client"
 	"github.com/goraz/onion/ciphers/secconf"
 	"github.com/ogier/pflag"
 )

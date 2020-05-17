@@ -8,8 +8,8 @@ import (
 	"log"
 	"time"
 
-	goetcd "github.com/etcd-io/etcd/client"
 	"github.com/goraz/onion"
+	goetcd "go.etcd.io/etcd/client"
 )
 
 type streamReload interface {
