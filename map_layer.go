@@ -14,9 +14,9 @@ func (m *mapLayer) Watch() <-chan map[string]interface{} {
 }
 
 // NewMapLayer returns a basic map layer, this layer is simply holds a map of values
-func NewMapLayer(data map[string]interface{}) Layer {
+func NewMapLayer(data ...map[string]interface{}) Layer {
 	ret := &mapLayer{
-		data: data,
+		data: mergeLayersData(data...),
 	}
 
 	return ret
