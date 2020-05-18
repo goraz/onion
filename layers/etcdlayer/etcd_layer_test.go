@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/etcd-io/etcd/client"
 	"github.com/goraz/onion"
 	. "github.com/smartystreets/goconvey/convey"
+	"go.etcd.io/etcd/client"
 )
 
 func TestNewEtcdLayerContext(t *testing.T) {
