@@ -167,8 +167,9 @@ func (rw *RefWatch) watchLoop(o *onion.Onion) {
 }
 
 // Watch get an onion and watch over it for changes in the layers.
-func (rw *RefWatch) Watch(ctx context.Context, o *onion.Onion) {
+func (rw *RefWatch) Watch(ctx context.Context, o *onion.Onion) <-chan struct{} {
 	rw.watchLoop(o)
+	w := make(chan struct{})
 	go func() {
 		for {
 			ch := o.ReloadWatch()
@@ -177,17 +178,23 @@ func (rw *RefWatch) Watch(ctx context.Context, o *onion.Onion) {
 				return
 			case <-ch:
 				rw.watchLoop(o)
+				select {
+				case w <- struct{}{}:
+				default:
+				}
 			}
 		}
 	}()
+
+	return w
 }
 
 // Watch get an onion and watch over it for changes in the layers.
-func Watch(o *onion.Onion) {
-	WatchContext(context.Background(), o)
+func Watch(o *onion.Onion) <-chan struct{} {
+	return WatchContext(context.Background(), o)
 }
 
 // WatchContext get an onion and watch over it for changes in the layers.
-func WatchContext(ctx context.Context, o *onion.Onion) {
-	w.Watch(ctx, o)
+func WatchContext(ctx context.Context, o *onion.Onion) <-chan struct{} {
+	return w.Watch(ctx, o)
 }
