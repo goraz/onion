@@ -5,7 +5,7 @@ set -o pipefail
 
 ROOT=$(dirname "${BASH_SOURCE}")/../..
 
-ETCD_VERSION=${ETCD_VERSION:-v3.3.17}
+ETCD_VERSION=${ETCD_VERSION:-v3.5.0}
 
 mkdir -p "${ROOT}/third_party"
 cd "${ROOT}/third_party"

@@ -1,7 +1,8 @@
 language: go
 go:
-  - 1.13
-  - 1.14
+  - 1.15
+  - 1.16
+  - 1.17
   - tip
 before_install:
   - go get -v github.com/smartystreets/goconvey
