@@ -38,10 +38,12 @@ func TestNewDirectoryLayer(t *testing.T) {
 		}
 
 		for i, testFile := range []string{testFile1, testFile2} {
-			ioutil.WriteFile(directoryName+"/test"+strconv.Itoa(i)+".json", []byte(testFile), 0644)
+			err := ioutil.WriteFile(directoryName+"/test"+strconv.Itoa(i)+".json", []byte(testFile), 0644)
+			So(err, ShouldBeNil)
 		}
 
 		directoryLayer, err := NewDirectoryLayer(directoryName, "json")
+		So(err, ShouldBeNil)
 		o := onion.New(directoryLayer)
 		So(o.GetString("string-not-to-override"), ShouldEqual, "pippo")
 		So(o.GetString("string-to-override"), ShouldEqual, "This string will override")

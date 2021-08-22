@@ -1,11 +1,8 @@
 language: go
 go:
-  - 1.9
-  - "1.10"
-  - 1.11
-  - 1.12
-  - 1.13
-  - 1.14
+  - 1.15
+  - 1.16
+  - 1.17
   - tip
 before_install:
   - go get -v github.com/smartystreets/goconvey
@@ -16,5 +13,6 @@ before_install:
   - sleep 3
 script:
   - make update
+  - make lint
   - goveralls -v -service travis-ci -repotoken $COVERALLS_TOKEN || make test
 

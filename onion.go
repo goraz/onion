@@ -62,12 +62,14 @@ func (o *Onion) setLayerData(l Layer, data map[string]interface{}, watch bool) {
 	}
 	o.data[l] = data
 
-	if !watch || o.reload == nil {
+	if !watch {
 		return
 	}
 
-	close(o.reload)
-	o.reload = nil
+	if o.reload != nil {
+		close(o.reload)
+		o.reload = nil
+	}
 }
 
 // AddLayersContext add a new layer to global config

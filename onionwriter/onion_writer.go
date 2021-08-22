@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/goraz/onion"
-	"github.com/goraz/onion/utils"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -13,11 +12,11 @@ import (
 func SerializeOnion(o *onion.Onion, w io.Writer) error {
 	data := o.LayersData()
 
-	mergedData := utils.MergeLayersData(data)
+	mergedData := onion.NewMapLayer(data...)
 
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
-	return enc.Encode(mergedData)
+	return enc.Encode(mergedData.Load())
 }
 
 // MergeLayersOnion is used to get all layers data merged into one
@@ -25,7 +24,7 @@ func SerializeOnion(o *onion.Onion, w io.Writer) error {
 func MergeLayersOnion(o *onion.Onion) map[string]interface{} {
 	layersData := o.LayersData()
 
-	return utils.MergeLayersData(layersData)
+	return onion.NewMapLayer(layersData...).Load()
 }
 
 // DecodeOnion try to convert merged layers in the output structure.

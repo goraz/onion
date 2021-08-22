@@ -10,9 +10,9 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/coreos/etcd/client"
 	"github.com/goraz/onion/ciphers/secconf"
 	"github.com/ogier/pflag"
+	"go.etcd.io/etcd/client"
 )
 
 var (

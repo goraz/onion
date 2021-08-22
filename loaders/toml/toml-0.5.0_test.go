@@ -1,11 +1,10 @@
-package toml050loader
+package tomlloader
 
 import (
 	"bytes"
 	"testing"
 
 	. "github.com/goraz/onion"
-	"github.com/goraz/onion/utils"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -51,7 +50,7 @@ func TestTomlLoader(t *testing.T) {
 			So(o.GetStringDefault("physical.color", ""), ShouldEqual, "orange")
 			So(o.GetIntDefault("physical.weight", 0), ShouldEqual, 3)
 
-			mergedLayers := utils.MergeLayersData(o.LayersData())
+			mergedLayers := NewMapLayer(o.LayersData()...).Load()
 			physicalMap, isAMap := mergedLayers["physical"].(map[string]interface{})
 			So(isAMap, ShouldBeTrue)
 			So(physicalMap["color"], ShouldEqual, "orange")

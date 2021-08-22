@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/goraz/onion"
-	"github.com/goraz/onion/utils"
 	"github.com/skarademir/naturalsort"
 )
 
@@ -20,7 +19,7 @@ func NewDirectoryLayer(directory, filesExtension string) (onion.Layer, error) {
 
 	fileNames := getFilesInOrder(directory, filesExtension)
 
-	if fileNames == nil || len(fileNames) == 0 {
+	if len(fileNames) == 0 {
 		return onion.NewMapLayer(nil), nil
 	}
 
@@ -36,7 +35,7 @@ func NewDirectoryLayer(directory, filesExtension string) (onion.Layer, error) {
 		layersData = append(layersData, layer.Load())
 	}
 
-	return onion.NewMapLayer(utils.MergeLayersData(layersData)), nil
+	return onion.NewMapLayer(layersData...), nil
 }
 
 func getFilesInOrder(directory, filesExtension string) []string {

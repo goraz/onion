@@ -1,9 +1,13 @@
-package utils
+package onion
 
 // MergeLayersData is an helper function to merge more layers in one.
 // Following slice order, a previous layer key is overriden by an equal key in
 // next layer.
-func MergeLayersData(layers []map[string]interface{}) map[string]interface{} {
+func mergeLayersData(layers ...map[string]interface{}) map[string]interface{} {
+	if len(layers) == 0 {
+		return map[string]interface{}{}
+	}
+
 	mergedLayer := layers[len(layers)-1]
 	layers = layers[:len(layers)-1]
 

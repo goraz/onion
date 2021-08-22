@@ -50,3 +50,19 @@ func NewEnvLayerPrefix(separator string, prefix string) Layer {
 
 	return NewMapLayer(data)
 }
+
+// NewFlatEnvLayerPrefix create new env layer, with all values with the same prefix however
+// this does not seperate the value hierarchically. This can be used for layered configurations
+// such as csv or ini instead of json or yaml.
+func NewFlatEnvLayerPrefix(separator string, prefix string) Layer {
+	var data map[string]interface{}
+	pf := strings.ToUpper(prefix) + separator
+	for _, env := range os.Environ() {
+		if strings.HasPrefix(env, pf) {
+			k := strings.Trim(strings.Split(env, "=")[0], "\t\n ")
+			ck := strings.ToLower(strings.TrimPrefix(k, pf))
+			data = buildMap(data, os.Getenv(k), ck)
+		}
+	}
+	return NewMapLayer(data)
+}

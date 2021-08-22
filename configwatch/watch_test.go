@@ -41,7 +41,7 @@ func TestRefWatch(t *testing.T) {
 		So(err, ShouldBeNil)
 		ly := l.(streamReload)
 		o := onion.New(l)
-		Watch(o)
+		tick := Watch(o)
 
 		So(i32.Int(), ShouldEqual, 32)
 		So(i64.Int64(), ShouldEqual, 64)
@@ -59,12 +59,10 @@ func TestRefWatch(t *testing.T) {
 		data["f32"] = 99.0
 		data["f64"] = 9999.0
 
-		c := o.ReloadWatch()
+		time.Sleep(time.Second)
 		So(ly.Reload(context.Background(), mapToJson(data), "json"), ShouldBeNil)
 		// This is just a hack for the load to finish
-		<-c
-		time.Sleep(3 * time.Second)
-
+		<-tick
 		So(i32.Int(), ShouldEqual, 132)
 		So(i64.Int64(), ShouldEqual, 164)
 		So(d.Duration(), ShouldEqual, time.Minute)

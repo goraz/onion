@@ -1,24 +1,32 @@
 module github.com/goraz/onion
 
-go 1.13
+go 1.17
 
 require (
-	github.com/BurntSushi/toml v0.3.1
-	github.com/coreos/etcd v3.3.17+incompatible
+	github.com/coreos/etcd v3.3.25+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
-	github.com/etcd-io/etcd v3.3.17+incompatible
-	github.com/fsnotify/fsnotify v1.4.7
-	github.com/imdario/mergo v0.3.8
-	github.com/json-iterator/go v1.1.8 // indirect
-	github.com/magiconair/properties v1.8.1
-	github.com/mitchellh/mapstructure v1.1.2
+	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4 // indirect
+	github.com/fsnotify/fsnotify v1.5.0
+	github.com/google/uuid v1.0.0 // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20210822113901-9ebd50d28389 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4 // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.9.5 // indirect
+	github.com/json-iterator/go v1.1.11 // indirect
+	github.com/jtolds/gls v4.20.0+incompatible // indirect
+	github.com/magiconair/properties v1.8.5
+	github.com/mitchellh/mapstructure v1.4.1
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/ogier/pflag v0.0.1
-	github.com/pelletier/go-toml v1.6.0
+	github.com/pelletier/go-toml v1.9.3
+	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/skarademir/naturalsort v0.0.0-20150715044055-69a5d87bef62
-	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337
-	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708
-	golang.org/x/sys v0.0.0-20191115151921-52ab43148777 // indirect
-	gopkg.in/yaml.v2 v2.2.5
+	github.com/smartystreets/assertions v1.2.0 // indirect
+	github.com/smartystreets/goconvey v1.6.4
+	go.etcd.io/etcd v3.3.25+incompatible
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/sys v0.0.0-20210820121016-41cdb8703e55 // indirect
+	google.golang.org/grpc v1.23.1 // indirect
+	gopkg.in/yaml.v2 v2.4.0
+	sigs.k8s.io/yaml v1.1.0 // indirect
 )
